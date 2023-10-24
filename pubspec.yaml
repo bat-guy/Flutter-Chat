@@ -46,6 +46,7 @@ dependencies:
   cached_network_image: ^3.3.0
   flutter_image_compress: ^2.1.0
   flutter_local_notifications: ^16.1.0
+  giphy_get: ^3.5.0
 
 dev_dependencies:
   flutter_test:

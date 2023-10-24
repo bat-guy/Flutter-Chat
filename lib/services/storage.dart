@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as Path;
 import 'package:image_picker/image_picker.dart';
 
@@ -21,6 +22,19 @@ class StorageService {
       }
     } catch (e) {
       print('Image picker error: $e');
+    }
+  }
+
+  Future<String?> uploadImage(XFile? file) async {
+    if (file != null) {
+      var snapshot = await FirebaseStorage.instance
+          .ref()
+          .child('images/${DateTime.now().millisecondsSinceEpoch.toString()}')
+          .putFile(File(file.path));
+      return await snapshot.ref.getDownloadURL();
+    } else {
+      print('File compressor returned null');
+      return null;
     }
   }
 }

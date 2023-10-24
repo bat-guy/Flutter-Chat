@@ -6,8 +6,10 @@ import 'package:flutter_mac/screens/chat/message.dart';
 import 'package:flutter_mac/screens/profile/profile.dart';
 import 'package:flutter_mac/services/auth_service.dart';
 import 'package:flutter_mac/services/database.dart';
+import 'package:flutter_mac/services/storage.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:giphy_get/giphy_get.dart';
 
 class ChatScreen extends StatefulWidget {
   final String uid;
@@ -24,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   late ChatUtils _chatUtils;
   late DatabaseService _dbService;
+  late StorageService _storageService;
   late ViewState _viewState;
   late ScrollController _scrollController;
   var messageList = <Message?>[];
@@ -36,6 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollController = ScrollController();
     _chatUtils = ChatUtils(uid: widget.uid);
     _dbService = DatabaseService(uid: widget.uid);
+    _storageService = StorageService(uid: widget.uid);
     _dbService.messages.listen((list) {
       if (messageList.isEmpty) {
         messageList.insertAll(0, list);
@@ -156,17 +160,10 @@ class _ChatScreenState extends State<ChatScreen> {
                               _sendMessage(_scrollController),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.attach_file),
-                        onPressed: () async {
-                          setState(() => _viewState = ViewState.loading);
-                          var downloadUrl = await _chatUtils.sendImage();
-                          setState(() => _viewState = ViewState.viewVisible);
-                          if (downloadUrl != null) {
-                            _dbService.sendMessage(
-                                imageUrl: downloadUrl, uid: widget.uid);
-                            messageController.clear();
-                          }
+                      GestureDetector(
+                        child: const Icon(Icons.attach_file),
+                        onTapDown: (TapDownDetails details) async {
+                          _showPopupMenu(details.globalPosition);
                         },
                       ),
                       IconButton(
@@ -192,5 +189,35 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _setViewState() {}
+  void _showPopupMenu(Offset offset) async {
+    await showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(offset.dx + 30, offset.dy + 30, 0, 0),
+      items: [
+        const PopupMenuItem(value: 1, child: Text("Gif")),
+        const PopupMenuItem(value: 2, child: Text("Image")),
+      ],
+      elevation: 8.0,
+    ).then((value) async {
+      if (value != null) {
+        if (value == 1) {
+          GiphyGif? gif = await GiphyGet.getGif(
+            context: context, //Required
+            apiKey: KeyConstants.giphyApiKey,
+            tabColor: Colors.teal,
+            debounceTimeInMilliseconds: 350,
+          );
+        } else {
+          var imageFile = await _chatUtils.pickImage();
+          setState(() => _viewState = ViewState.loading);
+          var downloadUrl = await _storageService.uploadImage(imageFile);
+          setState(() => _viewState = ViewState.viewVisible);
+          if (downloadUrl != null) {
+            _dbService.sendMessage(imageUrl: downloadUrl, uid: widget.uid);
+            messageController.clear();
+          }
+        }
+      }
+    });
+  }
 }

@@ -35,3 +35,7 @@ class ChatConstants {
   static String imageUrl = 'image_url';
   static String uid = 'uid';
 }
+
+class KeyConstants {
+  static String giphyApiKey = 'jKi0717ZNdPeHV6yCCnKGSwA1lM5sTC8';
+}

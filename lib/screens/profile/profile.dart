@@ -13,94 +13,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    // return Container(
-    //   padding: const EdgeInsets.all(8),
-    //   decoration: const BoxDecoration(color: Color.fromARGB(255, 210, 17, 3)),
-    //   child: SafeArea(
-    //     child: Column(
-    //       crossAxisAlignment: CrossAxisAlignment.center,
-    //       children: [
-    //         Row(
-    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //           children: [
-    //             GestureDetector(
-    //               child: const Icon(
-    //                 Icons.arrow_back_ios_new_outlined,
-    //                 color: Colors.white,
-    //               ),
-    //               onTap: () {
-    //                 if (Navigator.canPop(context)) {
-    //                   Navigator.pop(context);
-    //                 } else {
-    //                   SystemNavigator.pop();
-    //                 }
-    //               },
-    //             ),
-    //             GestureDetector(
-    //               child: const Icon(
-    //                 Icons.logout_outlined,
-    //                 color: Colors.white,
-    //               ),
-    //               onTap: () {},
-    //             ),
-    //           ],
-    //         ),
-    //         Stack(children: [
-    //           Card(
-    //               elevation: 2,
-    //               color: Colors.white,
-    //               child: Text(
-    //                 'asdadhbasdhbasjdhab sjd ajsd ajs dcjaasdajs dajs ashcb akscn  asuhbcasucbua sbcu  ucbua sbcua sbcuay sbcuay bscuysbcuwhd bcuasd bcusdbcuadsbc iasbck scbkas bcias cbiasucb iasbcidbc iasdbciadsbcsiadcb skdc bsxncb skdxcbskdcbsidc bidbcaisucbqieycb wuevcwuec basicdaksm as camscasm ascasc',
-    //                 style: TextStyle(color: Colors.black),
-    //               )),
-    //           Positioned(
-    //             top: 0,
-    //             child: Card(
-    //               margin: const EdgeInsets.only(top: 40),
-    //               elevation: 1,
-    //               color: Colors.transparent,
-    //               child: CachedNetworkImage(
-    //                 imageUrl: 'asdasd',
-    //                 imageBuilder: (context, imageProvider) => Container(
-    //                   decoration: BoxDecoration(
-    //                     image: DecorationImage(
-    //                       image: imageProvider,
-    //                       fit: BoxFit.cover,
-    //                       colorFilter: const ColorFilter.mode(
-    //                         Colors.red,
-    //                         BlendMode.colorBurn,
-    //                       ),
-    //                     ),
-    //                   ),
-    //                 ),
-    //                 placeholder: (context, url) => const Icon(
-    //                   Icons.person,
-    //                   color: Colors.white,
-    //                   size: 100,
-    //                 ),
-    //                 errorWidget: (context, url, error) => const Icon(
-    //                   Icons.person,
-    //                   color: Colors.white,
-    //                   size: 100,
-    //                 ),
-    //                 height: 100,
-    //                 width: 100,
-    //               ),
-    //             ),
-    //           ),
-    //         ]),
-    //       ],
-    //     ),
-    //   ),
-    // );
-
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 211, 21, 7),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 211, 21, 7),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_outlined),
+          icon: const Icon(Icons.arrow_back_ios_new_outlined),
           color: Colors.white,
           onPressed: () {
             if (Navigator.canPop(context)) {
