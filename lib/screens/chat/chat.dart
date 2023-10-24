@@ -3,6 +3,7 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
+import 'package:flutter_mac/screens/profile/profile.dart';
 import 'package:flutter_mac/services/auth_service.dart';
 import 'package:flutter_mac/services/database.dart';
 import 'package:flutter_mac/services/utils.dart';
@@ -95,6 +96,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          leading: GestureDetector(
+            child: Icon(Icons.account_circle_rounded),
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ProfileScreen())),
+          ),
+          leadingWidth: 100, // default is 56
           title: const Text('Chat Room'),
           actions: [
             IconButton.filled(

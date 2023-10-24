@@ -3,9 +3,7 @@ import 'package:flutter_mac/models/message.dart';
 
 class DatabaseService {
   final String uid;
-  DatabaseService({required this.uid}) {
-    FirebaseFirestore.instance.settings.persistenceEnabled;
-  }
+  DatabaseService({required this.uid});
 
   final CollectionReference _collection =
       FirebaseFirestore.instance.collection('messages');
