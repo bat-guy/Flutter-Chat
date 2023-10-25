@@ -23,7 +23,7 @@ class DatabaseService {
 
   Future sendMessage({required String msg, required String name}) async {
     return await _messageCollection.add({
-      'name': name,
+      'uid': uid,
       'msg': msg,
       'message_type': MessageType.TEXT,
       'timestamp': DateTime.timestamp().millisecondsSinceEpoch
@@ -32,6 +32,7 @@ class DatabaseService {
 
   Future sendImage({required String url}) async {
     return await _messageCollection.add({
+      'uid': uid,
       'url': url,
       'message_type': MessageType.IMAGE,
       'timestamp': DateTime.timestamp().millisecondsSinceEpoch
@@ -80,34 +81,6 @@ class DatabaseService {
     if (data.docs.isNotEmpty) {
       for (var e in data.docs) {
         list.add(MessageV2.fromMap(e, uid));
-      }
-    }
-    return list;
-  }
-
-  Future<List<Message>?> getOldMessageListSnapshot1() async {
-    if (!loading) {
-      loading = true;
-      var data = await FirebaseFirestore.instance
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(20)
-          .get();
-      loading = false;
-      if (data.docs.isNotEmpty) {
-        _lastDoc = data.docs.last;
-        return _setChatListFromQuerySnapshot1(data);
-      }
-    }
-    loading = false;
-    return null;
-  }
-
-  List<Message> _setChatListFromQuerySnapshot1(QuerySnapshot data) {
-    final list = <Message>[];
-    if (data.docs.isNotEmpty) {
-      for (var e in data.docs) {
-        list.add(Message.fromMap(e, uid));
       }
     }
     return list;

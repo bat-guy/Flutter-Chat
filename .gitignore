@@ -88,5 +88,6 @@ app.*.map.json
 /linux/flutter/
 /macos/flutter
 /macos/Podfile.lock
-
 /windows/flutter
+/installers/
+/ios/Podfile.lock

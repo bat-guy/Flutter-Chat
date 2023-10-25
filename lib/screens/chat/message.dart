@@ -64,15 +64,16 @@ class MessageWidget extends StatelessWidget {
     }
   }
 
-  _buildMessageWidget() {
+  Widget _buildMessageWidget() {
     if (msg!.messageType == MessageType.TEXT) {
-      Text(
+      return Text(
         msg!.msg ?? '',
         softWrap: true,
         style: const TextStyle(color: Colors.white, fontSize: 18),
       );
-    } else if (msg!.messageType == MessageType.IMAGE) {
-      CachedNetworkImage(
+    } else {
+      // Container();
+      return CachedNetworkImage(
         imageUrl: msg!.url as String,
         imageBuilder: (context, imageProvider) => Container(
           decoration: BoxDecoration(
