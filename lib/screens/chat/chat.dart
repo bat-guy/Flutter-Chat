@@ -306,7 +306,10 @@ class _ChatScreenState extends State<ChatScreen> {
             apiKey: KeyConstants.giphyApiKey,
             tabColor: Colors.teal,
             debounceTimeInMilliseconds: 350,
+            showEmojis: false,
+            showStickers: false,
           );
+          _dbService.sendGIF(url: gif!.images!.fixedHeightDownsampled!.url);
         } else {
           var imageFile = await _chatUtils.pickImage();
           setState(() => _viewState = ViewState.loading);

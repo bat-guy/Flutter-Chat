@@ -60,7 +60,7 @@ class MessageV2 {
         id: e.id,
         uid: e.get('uid'),
         isMe: e.get('uid') == uid,
-        msg: e.get('msg'),
+        msg: e.get('message_type') != MessageType.TEXT ? null : e.get('msg'),
         messageType: e.get('message_type'),
         timestamp: e.get('timestamp'),
         url: (e.get('message_type') == MessageType.GIF ||

@@ -39,6 +39,15 @@ class DatabaseService {
     });
   }
 
+  Future sendGIF({required String url}) async {
+    return await _messageCollection.add({
+      'uid': uid,
+      'url': url,
+      'message_type': MessageType.GIF,
+      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
+    });
+  }
+
   Future<bool> createUser(String uid) async {
     final response = await _userCollection.doc(uid).get();
     if (!response.exists) {
