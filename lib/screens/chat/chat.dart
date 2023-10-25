@@ -97,10 +97,12 @@ class _ChatScreenState extends State<ChatScreen> {
             appBar: AppBar(
               leading: GestureDetector(
                 child: const Icon(Icons.account_circle_rounded),
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ProfileScreen())),
+                onTap: () {
+                  // Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         builder: (context) => const ProfileScreen()));
+                },
               ),
               leadingWidth: 100, // default is 56
               title: const Text('Chat Room'),
