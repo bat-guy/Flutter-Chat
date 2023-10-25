@@ -5,13 +5,15 @@ class DatabaseService {
   final String uid;
   DatabaseService({required this.uid});
 
-  final CollectionReference _collection =
+  final CollectionReference _messageCollection =
       FirebaseFirestore.instance.collection('messages');
+  final CollectionReference _userCollection =
+      FirebaseFirestore.instance.collection('users');
   DocumentSnapshot? _lastDoc;
   var loading = false;
 
   Stream<List<Message>> get messages {
-    return _collection
+    return _messageCollection
         .orderBy('timestamp', descending: true)
         .limit(20)
         .snapshots()
@@ -23,7 +25,7 @@ class DatabaseService {
       String? name,
       String? imageUrl,
       required String uid}) async {
-    return await _collection.add({
+    return await _messageCollection.add({
       'name': name,
       'msg': msg,
       'uid': uid,
@@ -32,10 +34,20 @@ class DatabaseService {
     });
   }
 
+  Future<bool> createUser(String uid) async {
+    final response = await _userCollection.doc(uid).get();
+    if (!response.exists) {
+      await _userCollection.doc(uid).set({'uid': uid});
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   Future<List<Message>?> getOldMessageListSnapshot() async {
     if (!loading) {
       loading = true;
-      var data = await _collection
+      var data = await _messageCollection
           .orderBy('timestamp', descending: true)
           .startAfterDocument(_lastDoc!)
           .limit(20)
