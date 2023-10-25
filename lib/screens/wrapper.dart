@@ -22,7 +22,7 @@ class Wrapper extends StatelessWidget {
   }
 
   _checkUser(UserCred user) {
-    DatabaseService(uid: user.uid).createUser(user.uid);
+    // DatabaseService(uid: user.uid).createUser(user.uid);
     return ChatScreen(uid: user.uid);
   }
 }

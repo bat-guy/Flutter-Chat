@@ -2,7 +2,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
-import 'package:flutter_mac/models/state.dart';
+import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
 import 'package:flutter_mac/screens/profile/profile.dart';
 import 'package:flutter_mac/services/auth_service.dart';
@@ -31,7 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late StorageService _storageService;
   late ViewState _viewState;
   late ScrollController _scrollController;
-  final _messageList = <Message?>[];
+  final _messageList = <MessageV2?>[];
   var count = 0;
   bool emojiShowing = false;
   final FocusNode _focus = FocusNode();
@@ -46,30 +46,34 @@ class _ChatScreenState extends State<ChatScreen> {
     _dbService = DatabaseService(uid: widget.uid);
     _storageService = StorageService(uid: widget.uid);
     _focus.addListener(_onFocusChange);
-    _dbService.messages.listen((list) {
-      if (_messageList.isEmpty) {
-        _messageList.insertAll(0, list);
-      } else {
-        if (_messageList.contains(null)) _messageList.remove(null);
-        for (int i = 0; i < list.length - 1; i++) {
-          if (_messageList[i]!.id != list[i].id)
-            _messageList.insert(0, list[i]);
+    try {
+      _dbService.messages.listen((list) {
+        if (_messageList.isEmpty) {
+          _messageList.insertAll(0, list);
+        } else {
+          if (_messageList.contains(null)) _messageList.remove(null);
+          for (int i = 0; i < list.length - 1; i++) {
+            if (_messageList[i]!.id != list[i].id)
+              _messageList.insert(0, list[i]);
+          }
         }
-      }
-      setState(() {
-        if (count == 0) _messageList.add(null);
-        _viewState = ViewState.viewVisible;
-        if (list.isNotEmpty && (list.first.isMe || count == 0)) {
-          if (count == 0) count++;
-          _scrollController.animateTo(
-            _scrollController.position.minScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeIn,
-          );
-        }
+        setState(() {
+          if (count == 0) _messageList.add(null);
+          _viewState = ViewState.viewVisible;
+          if (list.isNotEmpty && (list.first.isMe || count == 0)) {
+            if (count == 0) count++;
+            _scrollController.animateTo(
+              _scrollController.position.minScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeIn,
+            );
+          }
+        });
+        _scrollController.addListener(_scrollListener);
       });
-      _scrollController.addListener(_scrollListener);
-    });
+    } catch (e, s) {
+      print(s);
+    }
   }
 
   @override
@@ -215,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               loadingIndicator: const SizedBox.shrink(),
                               tabIndicatorAnimDuration: kTabScrollDuration,
                               categoryIcons: const CategoryIcons(),
-                              buttonMode: ButtonMode.MATERIAL,
+                              buttonMode: ButtonMode.CUPERTINO,
                               checkPlatformCompatibility: true,
                             ),
                           )),
@@ -280,7 +284,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _dbService.sendMessage(
         msg: messageController.text,
         name: 'name',
-        uid: widget.uid,
       );
       messageController.clear();
     }
@@ -310,7 +313,7 @@ class _ChatScreenState extends State<ChatScreen> {
           var downloadUrl = await _storageService.uploadImage(imageFile);
           setState(() => _viewState = ViewState.viewVisible);
           if (downloadUrl != null) {
-            _dbService.sendMessage(imageUrl: downloadUrl, uid: widget.uid);
+            _dbService.sendImage(url: downloadUrl);
             messageController.clear();
           }
         }

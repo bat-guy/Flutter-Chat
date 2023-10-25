@@ -1,18 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_mac/models/message.dart';
+import 'package:flutter_mac/models/state_enums.dart';
 
 class DatabaseService {
   final String uid;
   DatabaseService({required this.uid});
 
   final CollectionReference _messageCollection =
-      FirebaseFirestore.instance.collection('messages');
+      FirebaseFirestore.instance.collection('messages-list');
   final CollectionReference _userCollection =
       FirebaseFirestore.instance.collection('users');
   DocumentSnapshot? _lastDoc;
   var loading = false;
 
-  Stream<List<Message>> get messages {
+  Stream<List<MessageV2>> get messages {
     return _messageCollection
         .orderBy('timestamp', descending: true)
         .limit(20)
@@ -20,17 +21,20 @@ class DatabaseService {
         .map(_messageListFromSnapshot);
   }
 
-  Future sendMessage(
-      {String? msg,
-      String? name,
-      String? imageUrl,
-      required String uid}) async {
+  Future sendMessage({required String msg, required String name}) async {
     return await _messageCollection.add({
       'name': name,
       'msg': msg,
-      'uid': uid,
-      'image_url': imageUrl,
-      'timestamp': FieldValue.serverTimestamp()
+      'message_type': MessageType.TEXT,
+      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
+    });
+  }
+
+  Future sendImage({required String url}) async {
+    return await _messageCollection.add({
+      'url': url,
+      'message_type': MessageType.IMAGE,
+      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
     });
   }
 
@@ -44,7 +48,7 @@ class DatabaseService {
     }
   }
 
-  Future<List<Message>?> getOldMessageListSnapshot() async {
+  Future<List<MessageV2>?> getOldMessageListSnapshot() async {
     if (!loading) {
       loading = true;
       var data = await _messageCollection
@@ -62,38 +66,48 @@ class DatabaseService {
     return null;
   }
 
-  List<Message> _messageListFromSnapshot(QuerySnapshot snapshot) {
+  List<MessageV2> _messageListFromSnapshot(QuerySnapshot snapshot) {
     var list = snapshot.docs.map((e) {
-      try {
-        Timestamp a = e.get('timestamp');
-        // print(a);
-      } catch (e, s) {
-        print(e);
-      }
-      return Message(
-          id: e.id,
-          isMe: e.get('uid') == uid,
-          msg: e.get('msg'),
-          uid: e.get('uid'),
-          name: e.get('name'),
-          imageUrl: e.get('image_url'));
+      return MessageV2.fromMap(e, uid);
     }).toList();
     _lastDoc ??= snapshot.docs.last;
     return list;
   }
 
   /// Method that creates the chat list from querySnapshot.
-  List<Message> _setChatListFromQuerySnapshot(QuerySnapshot data) {
+  List<MessageV2> _setChatListFromQuerySnapshot(QuerySnapshot data) {
+    final list = <MessageV2>[];
+    if (data.docs.isNotEmpty) {
+      for (var e in data.docs) {
+        list.add(MessageV2.fromMap(e, uid));
+      }
+    }
+    return list;
+  }
+
+  Future<List<Message>?> getOldMessageListSnapshot1() async {
+    if (!loading) {
+      loading = true;
+      var data = await FirebaseFirestore.instance
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(20)
+          .get();
+      loading = false;
+      if (data.docs.isNotEmpty) {
+        _lastDoc = data.docs.last;
+        return _setChatListFromQuerySnapshot1(data);
+      }
+    }
+    loading = false;
+    return null;
+  }
+
+  List<Message> _setChatListFromQuerySnapshot1(QuerySnapshot data) {
     final list = <Message>[];
     if (data.docs.isNotEmpty) {
       for (var e in data.docs) {
-        list.add(Message(
-            id: e.id,
-            isMe: e.get('uid') == uid,
-            msg: e.get('msg'),
-            uid: e.get('uid'),
-            name: e.get('name'),
-            imageUrl: e.get('image_url')));
+        list.add(Message.fromMap(e, uid));
       }
     }
     return list;
