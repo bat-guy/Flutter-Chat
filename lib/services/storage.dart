@@ -33,7 +33,7 @@ class StorageService {
           .putFile(File(file.path));
       return await snapshot.ref.getDownloadURL();
     } else {
-      print('File compressor returned null');
+      print('Picked File returned null');
       return null;
     }
   }

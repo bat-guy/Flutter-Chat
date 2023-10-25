@@ -13,7 +13,7 @@ class ChatUtils {
       final ImagePicker picker = ImagePicker();
       return await picker.pickImage(source: ImageSource.gallery);
     } catch (e, s) {
-      print('Failed to upload image: $s');
+      print('Failed to pick image: $s');
       return null;
     }
   }
