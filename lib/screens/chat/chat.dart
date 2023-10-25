@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
@@ -120,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           color: Colors.red,
                         ),
                         Text(
-                          'Upload Photo. Please wait...',
+                          'Uploading Photo. Please wait...',
                           style: TextStyle(fontSize: 16, color: Colors.black),
                         )
                       ]),
@@ -309,9 +311,13 @@ class _ChatScreenState extends State<ChatScreen> {
             showEmojis: false,
             showStickers: false,
           );
-          _dbService.sendGIF(url: gif!.images!.fixedHeightDownsampled!.url);
+          if (gif != null &&
+              gif.images != null &&
+              gif.images!.fixedHeightDownsampled != null) {
+            _dbService.sendGIF(url: gif.images!.fixedHeightDownsampled!.url);
+          }
         } else {
-          var imageFile = await _chatUtils.pickImage();
+          File? imageFile = await _chatUtils.pickImage();
           setState(() => _viewState = ViewState.loading);
           var downloadUrl = await _storageService.uploadImage(imageFile);
           setState(() => _viewState = ViewState.viewVisible);

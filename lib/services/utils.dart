@@ -8,10 +8,19 @@ class ChatUtils {
 
   final ImagePicker _picker = ImagePicker();
 
-  Future<XFile?> pickImage() async {
+  Future<File?> pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();
-      return await picker.pickImage(source: ImageSource.gallery);
+      final c = await picker.pickImage(source: ImageSource.gallery);
+      if (c != null) {
+        File? f = File(c.path);
+        while (f!.lengthSync() > 250000) {
+          f = await ImageUtils().compressFile(File(c.path));
+        }
+        return f;
+      }
+      print("c == null");
+      return null;
     } catch (e, s) {
       print('Failed to pick image: $s');
       return null;
@@ -40,7 +49,7 @@ class ImageUtils {
         print(file.lengthSync());
         print(finalFile.lengthSync());
 
-        return file;
+        return finalFile;
       } else {
         return null;
       }
