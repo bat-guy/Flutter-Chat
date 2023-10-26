@@ -1,6 +1,11 @@
 import 'dart:io';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatUtils {
   final String uid;
@@ -57,5 +62,56 @@ class ImageUtils {
       print(s);
       return null;
     }
+  }
+}
+
+class TextUtils {
+  //This method takes a raw string and gives out a List<TexSpan> that contain normal text and links.
+  static List<TextSpan> extractLinkText(String rawString) {
+    List<TextSpan> textSpan = [];
+
+    final urlRegExp = RegExp(
+        r"((https?:www\.)|(https?:\/\/)|(www\.))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?");
+
+    getLink(String linkString) {
+      textSpan.add(
+        TextSpan(
+          text: linkString,
+          style: GoogleFonts.montserrat(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () async {
+              if (!await launchUrl(Uri.parse(linkString.contains('https://')
+                  ? linkString
+                  : "https://$linkString"))) {
+                Fluttertoast.showToast(msg: "Could not launch $linkString");
+              }
+            },
+        ),
+      );
+      return linkString;
+    }
+
+    getNormalText(String normalText) {
+      textSpan.add(
+        TextSpan(
+          text: normalText,
+          style: GoogleFonts.montserrat(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      );
+      return normalText;
+    }
+
+    rawString.splitMapJoin(
+      urlRegExp,
+      onMatch: (m) => getLink("${m.group(0)}"),
+      onNonMatch: (n) => getNormalText("${n.substring(0)}"),
+    );
+
+    return textSpan;
   }
 }
