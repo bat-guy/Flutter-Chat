@@ -64,6 +64,7 @@ class MessageV2 {
         messageType: e.get('message_type'),
         timestamp: e.get('timestamp'),
         url: (e.get('message_type') == MessageType.GIF ||
+                e.get('message_type') == MessageType.STICKER ||
                 e.get('message_type') == MessageType.IMAGE)
             ? e.get('url')
             : null);

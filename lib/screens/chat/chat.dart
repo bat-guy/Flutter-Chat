@@ -310,13 +310,16 @@ class _ChatScreenState extends State<ChatScreen> {
             apiKey: KeyConstants.giphyApiKey,
             tabColor: Colors.teal,
             debounceTimeInMilliseconds: 350,
-            showEmojis: false,
-            showStickers: false,
           );
           if (gif != null &&
               gif.images != null &&
               gif.images!.fixedHeightDownsampled != null) {
-            _dbService.sendGIF(url: gif.images!.fixedHeightDownsampled!.url);
+            if (gif.type == 'gif') {
+              _dbService.sendGIF(url: gif.images!.fixedHeightDownsampled!.url);
+            } else if (gif.type == 'sticker') {
+              _dbService.sendSticker(
+                  url: gif.images!.fixedHeightDownsampled!.url);
+            }
           }
         } else {
           File? imageFile = await _chatUtils.pickImage();

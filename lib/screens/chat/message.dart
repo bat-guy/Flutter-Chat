@@ -27,15 +27,10 @@ class _MyWidgetState extends State<MessageWidget> {
       return Align(
         alignment: msg.isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          margin: msg.messageType != MessageType.TEXT
-              ? const EdgeInsets.all(8.0)
-              : EdgeInsets.fromLTRB(msg.isMe ? 30 : 8, 4, msg.isMe ? 8 : 30, 4),
-          padding: msg.messageType != MessageType.TEXT
-              ? const EdgeInsets.all(8.0)
-              : EdgeInsets.fromLTRB(msg.isMe ? 10 : 8, 8, msg.isMe ? 8 : 10, 8),
+          margin: _getBoxMargin(msg),
+          padding: _getBoxPadding(msg),
           decoration: BoxDecoration(
-            color:
-                msg.isMe ? Colors.blue : const Color.fromARGB(255, 19, 206, 44),
+            color: _getBoxColor(msg),
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: GestureDetector(
@@ -103,5 +98,27 @@ class _MyWidgetState extends State<MessageWidget> {
         width: 150,
       );
     }
+  }
+
+  _getBoxColor(MessageV2 msg) {
+    if (msg.messageType == MessageType.STICKER) {
+      return Colors.transparent;
+    } else if (msg.isMe) {
+      return Colors.blue;
+    } else {
+      return const Color.fromARGB(255, 19, 206, 44);
+    }
+  }
+
+  _getBoxMargin(MessageV2 msg) {
+    return msg.messageType != MessageType.TEXT
+        ? const EdgeInsets.all(8.0)
+        : EdgeInsets.fromLTRB(msg.isMe ? 30 : 8, 4, msg.isMe ? 8 : 30, 4);
+  }
+
+  _getBoxPadding(MessageV2 msg) {
+    return msg.messageType != MessageType.TEXT
+        ? const EdgeInsets.all(8.0)
+        : EdgeInsets.fromLTRB(msg.isMe ? 10 : 8, 8, msg.isMe ? 8 : 10, 8);
   }
 }
