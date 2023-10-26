@@ -7,7 +7,6 @@ import 'package:flutter_mac/screens/image_preview.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class MessageWidget extends StatefulWidget {
@@ -109,10 +108,22 @@ class _MyWidgetState extends State<MessageWidget> {
         width: 150,
       );
     } else {
-      return Image.network(
-        msg.url!,
-        gaplessPlayback: true,
-        fit: BoxFit.contain,
+      return CachedNetworkImage(
+        imageUrl: msg.url as String,
+        imageBuilder: (context, imageProvider) => Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: imageProvider,
+              fit: BoxFit.cover,
+              colorFilter: const ColorFilter.mode(
+                Colors.transparent,
+                BlendMode.colorBurn,
+              ),
+            ),
+          ),
+        ),
+        placeholder: (context, url) => const SpinKitCircle(color: Colors.red),
+        errorWidget: (context, url, error) => const Icon(Icons.error),
         height: 150,
         width: 150,
       );

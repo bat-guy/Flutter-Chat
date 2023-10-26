@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
@@ -27,15 +28,15 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController messageController = TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
   late ChatUtils _chatUtils;
   late DatabaseService _dbService;
   late StorageService _storageService;
   late ViewState _viewState;
   late ScrollController _scrollController;
   final _messageList = <MessageV2?>[];
-  var count = 0;
-  bool emojiShowing = false;
+  var _count = 0;
+  bool _emojiShowing = false;
   final FocusNode _focus = FocusNode();
   var _keyboardVisible = false;
 
@@ -60,10 +61,10 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
         setState(() {
-          if (count == 0) _messageList.add(null);
+          if (_count == 0) _messageList.add(null);
           _viewState = ViewState.viewVisible;
-          if (list.isNotEmpty && (list.first.isMe || count == 0)) {
-            if (count == 0) count++;
+          if (list.isNotEmpty && (list.first.isMe || _count == 0)) {
+            if (_count == 0) _count++;
             _scrollController.animateTo(
               _scrollController.position.minScrollExtent,
               duration: const Duration(milliseconds: 300),
@@ -152,8 +153,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           IconButton(
                             icon: const Icon(Icons.emoji_emotions_outlined),
                             onPressed: () => setState(() {
-                              if (!emojiShowing) _focus.unfocus();
-                              emojiShowing = !emojiShowing;
+                              if (!_emojiShowing) _focus.unfocus();
+                              _emojiShowing = !_emojiShowing;
                             }),
                           ),
                           Expanded(
@@ -161,7 +162,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               minLines: 1,
                               maxLines: 5,
                               focusNode: _focus,
-                              controller: messageController,
+                              controller: _messageController,
                               decoration: InputDecoration(
                                   labelText: StringConstants.typeMessage,
                                   floatingLabelBehavior:
@@ -185,11 +186,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     Offstage(
-                      offstage: !emojiShowing,
+                      offstage: !_emojiShowing,
                       child: SizedBox(
                           height: 250,
                           child: EmojiPicker(
-                            textEditingController: messageController,
+                            textEditingController: _messageController,
                             onBackspacePressed: _onBackspacePressed,
                             config: Config(
                               columns: 7,
@@ -259,15 +260,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   _onBackspacePressed() {
-    messageController
-      ..text = messageController.text.characters.toString()
+    _messageController
+      ..text = _messageController.text.characters.toString()
       ..selection = TextSelection.fromPosition(
-          TextPosition(offset: messageController.text.length));
+          TextPosition(offset: _messageController.text.length));
   }
 
   void _onFocusChange() {
     setState(() {
-      if (_focus.hasFocus) emojiShowing = false;
+      if (_focus.hasFocus) _emojiShowing = false;
     });
   }
 
@@ -276,20 +277,17 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_keyboardVisible) {
       _focus.unfocus();
       return false;
-    } else if (emojiShowing) {
-      setState(() => emojiShowing = false);
+    } else if (_emojiShowing) {
+      setState(() => _emojiShowing = false);
       return false;
     }
     return true;
   }
 
-  void _sendMessage(ScrollController controller) {
-    if (messageController.text.isNotEmpty) {
-      _dbService.sendMessage(
-        msg: messageController.text,
-        name: 'name',
-      );
-      messageController.clear();
+  void _sendMessage(ScrollController controller) async {
+    if (_messageController.text.isNotEmpty) {
+      await _dbService.sendMessage(msg: _messageController.text);
+      _messageController.clear();
     }
   }
 
@@ -328,7 +326,7 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() => _viewState = ViewState.viewVisible);
           if (downloadUrl != null) {
             _dbService.sendImage(url: downloadUrl);
-            messageController.clear();
+            _messageController.clear();
           }
         }
       }

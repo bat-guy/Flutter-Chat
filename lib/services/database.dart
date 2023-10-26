@@ -21,7 +21,7 @@ class DatabaseService {
         .map(_messageListFromSnapshot);
   }
 
-  Future sendMessage({required String msg, required String name}) async {
+  Future sendMessage({required String msg}) async {
     return await _messageCollection.add({
       'uid': uid,
       'msg': msg,
