@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,13 +5,10 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
-import 'package:flutter_mac/screens/profile/profile.dart';
 import 'package:flutter_mac/services/auth_service.dart';
-import 'package:flutter_mac/services/database.dart';
-import 'package:flutter_mac/services/storage.dart';
-import 'package:flutter_mac/services/utils.dart';
+
+import 'package:flutter_mac/viewmodel/chat_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:giphy_get/giphy_get.dart';
 import 'package:flutter/foundation.dart' as foundation;
 
 class ChatScreen extends StatefulWidget {
@@ -29,54 +24,43 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  late ChatUtils _chatUtils;
-  late DatabaseService _dbService;
-  late StorageService _storageService;
   late ViewState _viewState;
   late ScrollController _scrollController;
-  final _messageList = <MessageV2?>[];
-  var _count = 0;
+  late ChatViewModel _chatViewModel;
   bool _emojiShowing = false;
   final FocusNode _focus = FocusNode();
   var _keyboardVisible = false;
+  var _messageLoaderVisible = false;
 
   @override
   initState() {
     super.initState();
     _viewState = ViewState.viewVisible;
     _scrollController = ScrollController();
-    _chatUtils = ChatUtils(uid: widget.uid);
-    _dbService = DatabaseService(uid: widget.uid);
-    _storageService = StorageService(uid: widget.uid);
+    _chatViewModel = ChatViewModel(uid: widget.uid);
     _focus.addListener(_onFocusChange);
-    try {
-      _dbService.messages.listen((list) {
-        if (_messageList.isEmpty) {
-          _messageList.insertAll(0, list);
-        } else {
-          if (_messageList.contains(null)) _messageList.remove(null);
-          for (int i = 0; i < list.length - 1; i++) {
-            if (_messageList[i]!.id != list[i].id)
-              _messageList.insert(0, list[i]);
-          }
-        }
-        setState(() {
-          if (_count == 0) _messageList.add(null);
-          _viewState = ViewState.viewVisible;
-          if (list.isNotEmpty && (list.first.isMe || _count == 0)) {
-            if (_count == 0) _count++;
-            _scrollController.animateTo(
-              _scrollController.position.minScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeIn,
-            );
-          }
-        });
-        _scrollController.addListener(_scrollListener);
-      });
-    } catch (e, s) {
-      print(s);
-    }
+
+    _chatViewModel.scrollStream.listen((event) {
+      if (event) {
+        _scrollController.animateTo(
+          _scrollController.position.minScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeIn,
+        );
+      }
+    });
+    _chatViewModel.viewStateStream.listen((state) {
+      _viewState = state;
+    });
+    _chatViewModel.messageControllerStream.listen((state) {
+      if (state) _messageController.clear();
+    });
+    _chatViewModel.messageLoaderStream.listen((isVisible) {
+      setState(() => _messageLoaderVisible = isVisible);
+    });
+
+    _chatViewModel.getMessages();
+    _scrollController.addListener(_scrollListener);
   }
 
   @override
@@ -98,12 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
             appBar: AppBar(
               leading: GestureDetector(
                 child: const Icon(Icons.account_circle_rounded),
-                onTap: () {
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) => const ProfileScreen()));
-                },
+                onTap: () {},
               ),
               leadingWidth: 100, // default is 56
               title: const Text('Chat Room'),
@@ -133,17 +112,23 @@ class _ChatScreenState extends State<ChatScreen> {
               ViewState.viewVisible => Column(
                   children: <Widget>[
                     Expanded(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.black12,
-                        ),
-                        child: ListView.builder(
-                            itemCount: _messageList.length,
-                            controller: _scrollController,
-                            reverse: true,
-                            itemBuilder: (context, index) {
-                              return MessageWidget(msg: _messageList[index]);
-                            }),
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.black12,
+                            ),
+                            child: StreamBuilder(
+                                stream: _chatViewModel.messageStream,
+                                builder: (context, snapshot) =>
+                                    _setListWidget(snapshot)),
+                          ),
+                          Visibility(
+                              visible: false,
+                              child: SpinKitCircle(
+                                color: Colors.red,
+                              ))
+                        ],
                       ),
                     ),
                     Container(
@@ -168,8 +153,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   floatingLabelBehavior:
                                       FloatingLabelBehavior.never),
                               textInputAction: TextInputAction.done,
-                              onSubmitted: (value) =>
-                                  _sendMessage(_scrollController),
+                              onSubmitted: (value) => _chatViewModel
+                                  .sendMessage(_messageController.text.trim()),
                             ),
                           ),
                           GestureDetector(
@@ -180,7 +165,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.send),
-                            onPressed: () => _sendMessage(_scrollController),
+                            onPressed: () => _chatViewModel
+                                .sendMessage(_messageController.text.trim()),
                           ),
                         ],
                       ),
@@ -238,25 +224,8 @@ class _ChatScreenState extends State<ChatScreen> {
   //Null item causes the loadingIndicator to appear in the list.
   //loading var is also added to if condition to stop the listener from calling firebase multiple times.
   void _scrollListener() async {
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
-        !_dbService.loading) {
-      final list = await _dbService.getOldMessageListSnapshot();
-      if (list != null && list.isNotEmpty) {
-        if (_messageList.contains(null)) _messageList.remove(null);
-        // _messageList.addAll(list);
-        int j = _messageList.length - 1;
-        for (int i = 0; i < list.length; i++) {
-          if (_messageList[j]!.id != list[i].id) _messageList.add(list[i]);
-          j--;
-        }
-        setState(() => _messageList.add(null));
-      } else {
-        setState(() {
-          if (_messageList.contains(null)) _messageList.remove(null);
-        });
-      }
-    }
+    _chatViewModel.getOldMessages(_scrollController.position.pixels,
+        _scrollController.position.maxScrollExtent);
   }
 
   _onBackspacePressed() {
@@ -269,26 +238,35 @@ class _ChatScreenState extends State<ChatScreen> {
   void _onFocusChange() {
     setState(() {
       if (_focus.hasFocus) _emojiShowing = false;
+      _keyboardVisible = _focus.hasFocus;
     });
+  }
+
+  Widget _setListWidget(AsyncSnapshot<List<MessageV2>> snapshot) {
+    if (snapshot.hasData && snapshot.data != null) {
+      return ListView.builder(
+          itemCount: snapshot.data!.length,
+          controller: _scrollController,
+          reverse: true,
+          itemBuilder: (context, index) {
+            return MessageWidget(msg: snapshot.data![index]);
+          });
+    } else {
+      return Center(child: Text('No data...'));
+    }
   }
 
   //Method called when the back button of the device is presed.
   _onBackButtonPressed() async {
     if (_keyboardVisible) {
       _focus.unfocus();
+      _keyboardVisible = false;
       return false;
     } else if (_emojiShowing) {
       setState(() => _emojiShowing = false);
       return false;
     }
     return true;
-  }
-
-  void _sendMessage(ScrollController controller) async {
-    if (_messageController.text.isNotEmpty) {
-      await _dbService.sendMessage(msg: _messageController.text);
-      _messageController.clear();
-    }
   }
 
   void _showPopupMenu(Offset offset) async {
@@ -301,35 +279,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ],
       elevation: 8.0,
     ).then((value) async {
-      if (value != null) {
-        if (value == 1) {
-          GiphyGif? gif = await GiphyGet.getGif(
-            context: context, //Required
-            apiKey: KeyConstants.giphyApiKey,
-            tabColor: Colors.teal,
-            debounceTimeInMilliseconds: 350,
-          );
-          if (gif != null &&
-              gif.images != null &&
-              gif.images!.fixedHeightDownsampled != null) {
-            if (gif.type == 'gif') {
-              _dbService.sendGIF(url: gif.images!.fixedHeightDownsampled!.url);
-            } else if (gif.type == 'sticker') {
-              _dbService.sendSticker(
-                  url: gif.images!.fixedHeightDownsampled!.url);
-            }
-          }
-        } else {
-          File? imageFile = await _chatUtils.pickImage();
-          setState(() => _viewState = ViewState.loading);
-          var downloadUrl = await _storageService.uploadImage(imageFile);
-          setState(() => _viewState = ViewState.viewVisible);
-          if (downloadUrl != null) {
-            _dbService.sendImage(url: downloadUrl);
-            _messageController.clear();
-          }
-        }
-      }
+      _chatViewModel.popUpMenuAction(value, context);
     });
   }
 }

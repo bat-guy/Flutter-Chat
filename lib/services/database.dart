@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
@@ -12,11 +14,13 @@ class DatabaseService {
       FirebaseFirestore.instance.collection('users');
   DocumentSnapshot? _lastDoc;
   var loading = false;
+  final _messageLimit = 30;
+  final messageSet = HashSet<String>();
 
   Stream<List<MessageV2>> get messages {
     return _messageCollection
         .orderBy('timestamp', descending: true)
-        .limit(20)
+        .limit(_messageLimit)
         .snapshots()
         .map(_messageListFromSnapshot);
   }
@@ -73,7 +77,7 @@ class DatabaseService {
       var data = await _messageCollection
           .orderBy('timestamp', descending: true)
           .startAfterDocument(_lastDoc!)
-          .limit(20)
+          .limit(_messageLimit)
           .get();
       loading = false;
       if (data.docs.isNotEmpty) {
@@ -86,10 +90,22 @@ class DatabaseService {
   }
 
   List<MessageV2> _messageListFromSnapshot(QuerySnapshot snapshot) {
-    var list = snapshot.docs.map((e) {
-      return MessageV2.fromMap(e, uid);
-    }).toList();
+    final list = <MessageV2>[];
     _lastDoc ??= snapshot.docs.last;
+    for (var e in snapshot.docChanges) {
+      switch (e.type) {
+        case DocumentChangeType.added:
+          list.add(MessageV2.fromMap(e.doc, uid, true));
+          print('added');
+          break;
+        case DocumentChangeType.modified:
+          print('modified');
+          break;
+        case DocumentChangeType.removed:
+          print('removed');
+          break;
+      }
+    }
     return list;
   }
 
@@ -98,7 +114,7 @@ class DatabaseService {
     final list = <MessageV2>[];
     if (data.docs.isNotEmpty) {
       for (var e in data.docs) {
-        list.add(MessageV2.fromMap(e, uid));
+        list.add(MessageV2.fromMap(e, uid, false));
       }
     }
     return list;

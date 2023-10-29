@@ -10,8 +10,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 class MessageWidget extends StatefulWidget {
-  const MessageWidget({super.key, this.msg});
-  final MessageV2? msg;
+  const MessageWidget({super.key, required this.msg});
+  final MessageV2 msg;
   @override
   State<MessageWidget> createState() => _MyWidgetState();
 }
@@ -20,66 +20,64 @@ class _MyWidgetState extends State<MessageWidget> {
   @override
   Widget build(BuildContext context) {
     MessageV2? msg = widget.msg;
-    if (msg == null) {
-      return const SpinKitDualRing(
-        color: Colors.red,
-      );
-    } else {
-      return Row(
-        mainAxisAlignment:
-            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
-                margin: _getBoxMargin(msg),
-                padding: _getBoxPadding(msg),
-                decoration: BoxDecoration(
-                    color: _getBoxColor(msg),
-                    borderRadius: BorderRadius.circular(8.0),
-                    boxShadow: _getBoxShadow(msg)),
-                child: GestureDetector(
-                    onTap: () {
-                      if (msg.messageType == MessageType.IMAGE) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    ImagePreview(imageUrl: msg.url as String)));
-                      }
-                    },
-                    onLongPress: () async {
-                      if (msg.messageType == MessageType.TEXT) {
-                        await Clipboard.setData(ClipboardData(text: msg.msg!));
-                        Fluttertoast.showToast(
-                            msg: 'Copied Successfully',
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.black,
-                            textColor: Colors.white,
-                            fontSize: 16.0);
-                      }
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _buildMessageWidget(msg),
-                        const SizedBox(height: 5),
-                        Text(
-                          DateFormat('HH:mm').format(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  msg.timestamp)),
-                          style: TextStyle(
-                              color: msg.messageType == MessageType.STICKER
-                                  ? Colors.black
-                                  : Colors.white),
-                        )
-                      ],
-                    ))),
-          ),
-        ],
-      );
-    }
+
+    return Row(
+      mainAxisAlignment:
+          msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        Flexible(
+          child: Container(
+              margin: _getBoxMargin(msg),
+              padding: _getBoxPadding(msg),
+              decoration: BoxDecoration(
+                  color: _getBoxColor(msg),
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: _getBoxShadow(msg)),
+              child: GestureDetector(
+                  onTap: () {
+                    if (msg.messageType == MessageType.IMAGE) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ImagePreview(imageUrl: msg.url as String)));
+                    }
+                  },
+                  onLongPress: () async {
+                    if (msg.messageType == MessageType.TEXT) {
+                      await Clipboard.setData(ClipboardData(text: msg.msg!));
+                      Fluttertoast.showToast(
+                          msg: 'Copied Successfully',
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.black,
+                          textColor: Colors.white,
+                          fontSize: 16.0);
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _buildMessageWidget(msg),
+                      const SizedBox(height: 5),
+                      Text(
+                        DateFormat('HH:mm').format(
+                            DateTime.fromMillisecondsSinceEpoch(msg.timestamp)
+                                .toUtc()
+                                .add(DateTime.fromMillisecondsSinceEpoch(
+                                        msg!.timestamp)
+                                    .timeZoneOffset)),
+                        style: TextStyle(
+                            color: msg.messageType == MessageType.STICKER
+                                ? Colors.black
+                                : Colors.white),
+                      )
+                    ],
+                  ))),
+        ),
+      ],
+    );
   }
 
   Widget _buildMessageWidget(MessageV2? msg) {
@@ -114,7 +112,7 @@ class _MyWidgetState extends State<MessageWidget> {
           decoration: BoxDecoration(
             image: DecorationImage(
               image: imageProvider,
-              fit: BoxFit.cover,
+              fit: BoxFit.fitHeight,
               colorFilter: const ColorFilter.mode(
                 Colors.transparent,
                 BlendMode.colorBurn,
@@ -125,7 +123,7 @@ class _MyWidgetState extends State<MessageWidget> {
         placeholder: (context, url) => const SpinKitCircle(color: Colors.red),
         errorWidget: (context, url, error) => const Icon(Icons.error),
         height: 150,
-        width: 150,
+        width: 200,
       );
     }
   }

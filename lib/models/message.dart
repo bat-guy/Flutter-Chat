@@ -55,8 +55,9 @@ class MessageV2 {
     };
   }
 
-  static MessageV2 fromMap(QueryDocumentSnapshot<Object?> e, String uid) {
-    return MessageV2(
+  static MessageV2 fromMap(
+      DocumentSnapshot<Object?> e, String uid, bool print1) {
+    final v = MessageV2(
         id: e.id,
         uid: e.get('uid'),
         isMe: e.get('uid') == uid,
@@ -68,6 +69,9 @@ class MessageV2 {
                 e.get('message_type') == MessageType.IMAGE)
             ? e.get('url')
             : null);
+    if (print1)
+      print("${v.id}, ${v.messageType}, msg -> ${v.msg}, url -> ${v.url}");
+    return v;
   }
 
   static List<Map<String, dynamic>> toMap(List<MessageV2> msgList) {
