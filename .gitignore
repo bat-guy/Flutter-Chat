@@ -91,3 +91,5 @@ app.*.map.json
 /windows/flutter
 /installers/
 /ios/Podfile.lock
+
+/.vscode

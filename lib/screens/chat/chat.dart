@@ -75,9 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return WillPopScope(
-        onWillPop: () async {
-          return _onBackButtonPressed();
-        },
+        onWillPop: () => _onBackButtonPressed(),
         child: Scaffold(
             appBar: AppBar(
               leading: GestureDetector(
@@ -243,21 +241,19 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _setListWidget(AsyncSnapshot<List<MessageV2>> snapshot) {
-    if (snapshot.hasData && snapshot.data != null) {
-      return ListView.builder(
-          itemCount: snapshot.data!.length,
-          controller: _scrollController,
-          reverse: true,
-          itemBuilder: (context, index) {
-            return MessageWidget(msg: snapshot.data![index]);
-          });
-    } else {
-      return Center(child: Text('No data...'));
-    }
+    return (snapshot.hasData && snapshot.data != null)
+        ? ListView.builder(
+            itemCount: snapshot.data!.length,
+            controller: _scrollController,
+            reverse: true,
+            itemBuilder: (context, index) {
+              return MessageWidget(msg: snapshot.data![index]);
+            })
+        : Center(child: Text('No data...'));
   }
 
   //Method called when the back button of the device is presed.
-  _onBackButtonPressed() async {
+  Future<bool> _onBackButtonPressed() async {
     if (_keyboardVisible) {
       _focus.unfocus();
       _keyboardVisible = false;

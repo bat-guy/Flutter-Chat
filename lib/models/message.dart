@@ -29,21 +29,21 @@ class Message {
 }
 
 class MessageV2 {
-  String uid;
-  String id;
+  String? uid;
+  String? id;
   String? msg;
   String? url;
   String messageType;
   int timestamp;
-  bool isMe;
+  bool? isMe;
   MessageV2(
-      {required this.id,
-      required this.uid,
+      {this.id,
+      this.uid,
       this.msg,
       this.url,
       required this.timestamp,
       required this.messageType,
-      required this.isMe});
+      this.isMe});
 
   Map<String, dynamic> toMapEntry() {
     return {
@@ -56,21 +56,23 @@ class MessageV2 {
   }
 
   static MessageV2 fromMap(
-      DocumentSnapshot<Object?> e, String uid, bool print1) {
-    final v = MessageV2(
-        id: e.id,
-        uid: e.get('uid'),
-        isMe: e.get('uid') == uid,
-        msg: e.get('message_type') != MessageType.TEXT ? null : e.get('msg'),
-        messageType: e.get('message_type'),
-        timestamp: e.get('timestamp'),
-        url: (e.get('message_type') == MessageType.GIF ||
-                e.get('message_type') == MessageType.STICKER ||
-                e.get('message_type') == MessageType.IMAGE)
-            ? e.get('url')
-            : null);
-    if (print1)
-      print("${v.id}, ${v.messageType}, msg -> ${v.msg}, url -> ${v.url}");
+      DocumentSnapshot<Object?> e, String uid, bool isDate) {
+    final v = (isDate)
+        ? MessageV2(
+            timestamp: e.get('message_type'), messageType: MessageType.DATE)
+        : MessageV2(
+            id: e.id,
+            uid: e.get('uid'),
+            isMe: e.get('uid') == uid,
+            msg:
+                e.get('message_type') != MessageType.TEXT ? null : e.get('msg'),
+            messageType: e.get('message_type'),
+            timestamp: e.get('timestamp'),
+            url: (e.get('message_type') == MessageType.GIF ||
+                    e.get('message_type') == MessageType.STICKER ||
+                    e.get('message_type') == MessageType.IMAGE)
+                ? e.get('url')
+                : null);
     return v;
   }
 

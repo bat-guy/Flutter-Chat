@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ChatUtils {
@@ -113,5 +114,26 @@ class TextUtils {
     );
 
     return textSpan;
+  }
+}
+
+class DateTimeUtils {
+  static String hourMinute = 'HH:mm';
+  static String dayMonthYear = 'dd MMMM yyyy';
+
+  static bool isDifferentDay(int previousTimeStamp, int currentTimeStamp) {
+    return getDayMonthYearString(previousTimeStamp) !=
+        getDayMonthYearString(currentTimeStamp);
+  }
+
+  static String getDayMonthYearString(int timeStamp) {
+    return DateFormat(dayMonthYear)
+        .format(DateTime.fromMillisecondsSinceEpoch(timeStamp));
+  }
+
+  static String getTimeByTimezone(int timestamp, String dateFormat) {
+    return DateFormat(dateFormat).format(
+        DateTime.fromMillisecondsSinceEpoch(timestamp).toUtc().add(
+            DateTime.fromMillisecondsSinceEpoch(timestamp).timeZoneOffset));
   }
 }

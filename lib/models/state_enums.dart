@@ -8,4 +8,5 @@ class MessageType {
   static String IMAGE = 'IMAGE';
   static String GIF = 'GIF';
   static String STICKER = 'STICKER';
+  static String DATE = 'DATE';
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
@@ -54,17 +55,23 @@ class ChatViewModel {
   getMessages() {
     _dbService.messages.listen((list) {
       try {
-        var list1 = <MessageV2>[];
-        for (var element in list) {
-          if (!_messageSet.contains(element.id)) {
-            list1.add(element);
-            _messageSet.add(element.id);
+        var tempList = <MessageV2>[];
+        for (var e in list) {
+          if (!_messageSet.contains(e.id)) {
+            tempList.add(e);
+            if (e.id != null) {
+              _messageSet.add(e.id!);
+            }
           }
         }
-        _messageList.insertAll(0, list1);
+
+        tempList.addAll(_messageList);
+        _messageList.clear();
+        _messageList.addAll(_parseMessageListForDate(tempList));
+
         _messageStreamProvidor.add(_messageList);
         _viewStateStreamProvidor.add(ViewState.viewVisible);
-        if (list.isNotEmpty && (list.first.isMe || _count == 0)) {
+        if (list.isNotEmpty && (list.first.isMe! || _count == 0)) {
           if (_count == 0) _count++;
           _scrollStreamProvidor.add(true);
         }
@@ -79,13 +86,22 @@ class ChatViewModel {
     if (pixels == maxScrollExtent && !_dbService.loading) {
       _messageLoaderProvidor.add(_dbService.loading);
       final list = await _dbService.getOldMessageListSnapshot();
+      var tempList = <MessageV2>[];
       if (list != null && list.isNotEmpty) {
-        for (var e in list) {
+        for (var i = 0; i <= list.length - 1; i++) {
+          final e = list[i];
           if (!_messageSet.contains(e.id)) {
-            _messageList.add(e);
-            _messageSet.add(e.id);
+            tempList.add(e);
+            if (e.id != null) {
+              _messageSet.add(e.id!);
+            }
           }
         }
+
+        tempList.insertAll(0, _messageList);
+        _messageList.clear();
+        _messageList.addAll(_parseMessageListForDate(tempList));
+
         _messageStreamProvidor.add(_messageList);
         _messageLoaderProvidor.add(_dbService.loading);
       }
@@ -94,8 +110,8 @@ class ChatViewModel {
 
   void sendMessage(String text) async {
     if (text.isNotEmpty) {
-      await _dbService.sendMessage(msg: text.trim());
       _messageControllerStreamProvidor.add(true);
+      await _dbService.sendMessage(msg: text.trim());
     }
   }
 
@@ -129,5 +145,23 @@ class ChatViewModel {
         }
       }
     }
+  }
+
+  _parseMessageListForDate(List<MessageV2> list) {
+    var tempList = <MessageV2>[];
+    MessageV2? prevItem;
+    for (var e in list.reversed) {
+      if (e.messageType != MessageType.DATE) {
+        if (prevItem == null ||
+            DateTimeUtils.isDifferentDay(prevItem.timestamp, e.timestamp)) {
+          final item =
+              MessageV2(timestamp: e.timestamp, messageType: MessageType.DATE);
+          tempList.add(item);
+        }
+        tempList.add(e);
+        prevItem = e;
+      }
+    }
+    return tempList.reversed;
   }
 }

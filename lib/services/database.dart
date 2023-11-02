@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
@@ -15,7 +13,6 @@ class DatabaseService {
   DocumentSnapshot? _lastDoc;
   var loading = false;
   final _messageLimit = 30;
-  final messageSet = HashSet<String>();
 
   Stream<List<MessageV2>> get messages {
     return _messageCollection
@@ -72,7 +69,7 @@ class DatabaseService {
   }
 
   Future<List<MessageV2>?> getOldMessageListSnapshot() async {
-    if (!loading) {
+    if (!loading && _lastDoc != null) {
       loading = true;
       var data = await _messageCollection
           .orderBy('timestamp', descending: true)
@@ -95,7 +92,7 @@ class DatabaseService {
     for (var e in snapshot.docChanges) {
       switch (e.type) {
         case DocumentChangeType.added:
-          list.add(MessageV2.fromMap(e.doc, uid, true));
+          list.add(MessageV2.fromMap(e.doc, uid, false));
           print('added');
           break;
         case DocumentChangeType.modified:
