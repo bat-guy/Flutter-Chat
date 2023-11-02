@@ -12,8 +12,6 @@ class ChatUtils {
   final String uid;
   ChatUtils({required this.uid});
 
-  final ImagePicker _picker = ImagePicker();
-
   Future<File?> pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();

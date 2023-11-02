@@ -1,5 +1,6 @@
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
@@ -31,6 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _focus = FocusNode();
   var _keyboardVisible = false;
   var _messageLoaderVisible = false;
+  var _newMessage = false;
 
   @override
   initState() {
@@ -42,11 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _chatViewModel.scrollStream.listen((event) {
       if (event) {
-        _scrollController.animateTo(
-          _scrollController.position.minScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeIn,
-        );
+        _scrollToBottom();
       }
     });
     _chatViewModel.viewStateStream.listen((state) {
@@ -57,6 +55,9 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _chatViewModel.messageLoaderStream.listen((isVisible) {
       setState(() => _messageLoaderVisible = isVisible);
+    });
+    _chatViewModel.newMessageStream.listen((isVisible) {
+      setState(() => _newMessage = isVisible);
     });
 
     _chatViewModel.getMessages();
@@ -111,6 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: <Widget>[
                     Expanded(
                       child: Stack(
+                        alignment: Alignment.bottomRight,
                         children: [
                           Container(
                             decoration: const BoxDecoration(
@@ -121,11 +123,25 @@ class _ChatScreenState extends State<ChatScreen> {
                                 builder: (context, snapshot) =>
                                     _setListWidget(snapshot)),
                           ),
-                          Visibility(
+                          const Visibility(
                               visible: false,
                               child: SpinKitCircle(
                                 color: Colors.red,
-                              ))
+                              )),
+                          Visibility(
+                            visible: _newMessage,
+                            child: Container(
+                                margin: const EdgeInsets.all(5),
+                                child: FloatingActionButton(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 64, 161, 29),
+                                  onPressed: () {
+                                    _scrollToBottom();
+                                    setState(() => _newMessage = false);
+                                  },
+                                  child: const Icon(Icons.arrow_downward_sharp),
+                                )),
+                          )
                         ],
                       ),
                     ),
@@ -218,12 +234,17 @@ class _ChatScreenState extends State<ChatScreen> {
             }));
   }
 
-  //Getting the old messages from fireStore and placing the null item in the _messageList
-  //Null item causes the loadingIndicator to appear in the list.
-  //loading var is also added to if condition to stop the listener from calling firebase multiple times.
   void _scrollListener() async {
     _chatViewModel.getOldMessages(_scrollController.position.pixels,
         _scrollController.position.maxScrollExtent);
+    if (_newMessage &&
+        _scrollController.position.userScrollDirection ==
+            ScrollDirection.forward) {
+      setState(() {
+        _newMessage = false;
+      });
+      ;
+    }
   }
 
   _onBackspacePressed() {
@@ -277,5 +298,13 @@ class _ChatScreenState extends State<ChatScreen> {
     ).then((value) async {
       _chatViewModel.popUpMenuAction(value, context);
     });
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.minScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeIn,
+    );
   }
 }

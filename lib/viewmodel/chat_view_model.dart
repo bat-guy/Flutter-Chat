@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
@@ -26,6 +25,8 @@ class ChatViewModel {
   final StreamController<bool> _scrollStreamProvidor = StreamController();
   late Stream<bool> messageLoaderStream;
   final StreamController<bool> _messageLoaderProvidor = StreamController();
+  late Stream<bool> newMessageStream;
+  final StreamController<bool> _newMessageProvidor = StreamController();
   final _messageList = <MessageV2>[];
   late DatabaseService _dbService;
   late StorageService _storageService;
@@ -50,6 +51,8 @@ class ChatViewModel {
     _messageControllerStreamProvidor.add(false);
     messageLoaderStream = _messageLoaderProvidor.stream;
     _messageLoaderProvidor.add(_dbService.loading);
+    newMessageStream = _newMessageProvidor.stream;
+    _newMessageProvidor.add(false);
   }
 
   getMessages() {
@@ -71,6 +74,9 @@ class ChatViewModel {
 
         _messageStreamProvidor.add(_messageList);
         _viewStateStreamProvidor.add(ViewState.viewVisible);
+        if (list.isNotEmpty && _count != 0) {
+          _newMessageProvidor.add(true);
+        }
         if (list.isNotEmpty && (list.first.isMe! || _count == 0)) {
           if (_count == 0) _count++;
           _scrollStreamProvidor.add(true);
@@ -82,6 +88,9 @@ class ChatViewModel {
   }
 
   //Method to fetch the old messages.
+  //Getting the old messages from fireStore and placing the null item in the _messageList
+  //Null item causes the loadingIndicator to appear in the list.
+  //loading var is also added to if condition to stop the listener from calling firebase multiple times.
   getOldMessages(double pixels, double maxScrollExtent) async {
     if (pixels == maxScrollExtent && !_dbService.loading) {
       _messageLoaderProvidor.add(_dbService.loading);
