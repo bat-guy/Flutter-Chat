@@ -27,6 +27,8 @@ class ChatViewModel {
   final StreamController<bool> _messageLoaderProvidor = StreamController();
   late Stream<bool> newMessageStream;
   final StreamController<bool> _newMessageProvidor = StreamController();
+  late Stream<bool> onlineStream;
+  final StreamController<bool> _onlineProvidor = StreamController();
   final _messageList = <MessageV2>[];
   late DatabaseService _dbService;
   late StorageService _storageService;
@@ -53,6 +55,18 @@ class ChatViewModel {
     _messageLoaderProvidor.add(_dbService.loading);
     newMessageStream = _newMessageProvidor.stream;
     _newMessageProvidor.add(false);
+    onlineStream = _onlineProvidor.stream;
+    _onlineProvidor.add(false);
+  }
+
+  void init() {
+    _dbService.getUserId().then((value) {
+      if (value.isNotEmpty) {
+        _dbService.getOnlineStatus(value).listen((online) {
+          _onlineProvidor.add(online);
+        });
+      }
+    });
   }
 
   getMessages() {
@@ -172,5 +186,9 @@ class ChatViewModel {
       }
     }
     return tempList.reversed;
+  }
+
+  setOnlineStatus(bool online) async {
+    await _dbService.setOnlineStatus(online);
   }
 }

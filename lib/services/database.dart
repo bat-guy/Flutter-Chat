@@ -116,4 +116,29 @@ class DatabaseService {
     }
     return list;
   }
+
+  Future<String> getUserId() async {
+    var data = await _userCollection.get();
+    if (data.docs.isNotEmpty) {
+      for (var e in data.docs) {
+        if (e.get('uid') != uid) {
+          return e.get('uid');
+        }
+      }
+    }
+    return '';
+  }
+
+  setOnlineStatus(bool online) async {
+    await _userCollection.doc(uid).update({'online': online});
+  }
+
+  Stream<bool> getOnlineStatus(String uid) {
+    return _userCollection.doc(uid).snapshots().map(_onlineStatus);
+  }
+
+  bool _onlineStatus(DocumentSnapshot snapshot) {
+    Map<String, dynamic>? map = snapshot.data() as Map<String, dynamic>?;
+    return (map!.containsKey('online')) ? map['online'] : false;
+  }
 }

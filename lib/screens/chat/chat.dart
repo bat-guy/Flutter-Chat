@@ -23,7 +23,7 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
   late ViewState _viewState;
   late ScrollController _scrollController;
@@ -33,15 +33,18 @@ class _ChatScreenState extends State<ChatScreen> {
   var _keyboardVisible = false;
   var _messageLoaderVisible = false;
   var _newMessage = false;
+  var _online = true;
 
   @override
   initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
     _viewState = ViewState.viewVisible;
     _scrollController = ScrollController();
     _chatViewModel = ChatViewModel(uid: widget.uid);
     _focus.addListener(_onFocusChange);
 
+    _chatViewModel.init();
     _chatViewModel.scrollStream.listen((event) {
       if (event) {
         _scrollToBottom();
@@ -59,13 +62,40 @@ class _ChatScreenState extends State<ChatScreen> {
     _chatViewModel.newMessageStream.listen((isVisible) {
       setState(() => _newMessage = isVisible);
     });
+    _chatViewModel.onlineStream.listen((online) {
+      setState(() => _online = online);
+    });
 
     _chatViewModel.getMessages();
     _scrollController.addListener(_scrollListener);
+    _chatViewModel.setOnlineStatus(true);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        setState(() => _chatViewModel.setOnlineStatus(true));
+        break;
+      case AppLifecycleState.paused:
+        setState(() => _chatViewModel.setOnlineStatus(false));
+        // print('paused');
+        break;
+      case AppLifecycleState.detached:
+        // print('detached');
+        break;
+      case AppLifecycleState.inactive:
+        // print('inactive');
+        break;
+      case AppLifecycleState.hidden:
+        // print('hidden');
+        break;
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
     _focus.removeListener(_onFocusChange);
@@ -86,6 +116,14 @@ class _ChatScreenState extends State<ChatScreen> {
               leadingWidth: 100, // default is 56
               title: const Text('Chat Room'),
               actions: [
+                Image(
+                  image: const AssetImage('assets/images/dot.png'),
+                  color: _online
+                      ? Colors.green
+                      : const Color.fromARGB(255, 232, 98, 88),
+                  width: 25,
+                  height: 25,
+                ),
                 IconButton.filled(
                     onPressed: () {
                       widget._auth.signOut();
@@ -243,7 +281,6 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _newMessage = false;
       });
-      ;
     }
   }
 
@@ -270,7 +307,7 @@ class _ChatScreenState extends State<ChatScreen> {
             itemBuilder: (context, index) {
               return MessageWidget(msg: snapshot.data![index]);
             })
-        : Center(child: Text('No data...'));
+        : const Center(child: Text('No data...'));
   }
 
   //Method called when the back button of the device is presed.

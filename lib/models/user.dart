@@ -1,5 +1,5 @@
 class UserCred {
   final String uid;
-
-  UserCred({required this.uid});
+  bool online = false;
+  UserCred({required this.uid, online});
 }
