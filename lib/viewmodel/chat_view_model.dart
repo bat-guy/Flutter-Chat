@@ -88,8 +88,10 @@ class ChatViewModel {
 
         _messageStreamProvidor.add(_messageList);
         _viewStateStreamProvidor.add(ViewState.viewVisible);
-        if (list.isNotEmpty && _count != 0) {
+        if (list.isNotEmpty && _count != 0 && !list.first.isMe!) {
           _newMessageProvidor.add(true);
+        } else {
+          _newMessageProvidor.add(false);
         }
         if (list.isNotEmpty && (list.first.isMe! || _count == 0)) {
           if (_count == 0) _count++;
