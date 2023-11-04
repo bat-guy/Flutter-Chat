@@ -1,10 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mac/viewmodel/profile_view_model.dart';
 
-class ImagePreview extends StatelessWidget {
+class ImagePreview extends StatefulWidget {
   final String imageUrl;
-  const ImagePreview({super.key, required this.imageUrl});
 
+  const ImagePreview({
+    super.key,
+    required this.imageUrl,
+  });
+
+  @override
+  State<ImagePreview> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<ImagePreview> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,7 +26,7 @@ class ImagePreview extends StatelessWidget {
             minScale: 0.1,
             maxScale: 3.6,
             child: CachedNetworkImage(
-              imageUrl: imageUrl,
+              imageUrl: widget.imageUrl,
               imageBuilder: (context, imageProvider) => Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(

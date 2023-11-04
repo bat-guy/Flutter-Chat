@@ -6,6 +6,7 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
+import 'package:flutter_mac/screens/profile/profile.dart';
 import 'package:flutter_mac/services/auth_service.dart';
 
 import 'package:flutter_mac/viewmodel/chat_view_model.dart';
@@ -111,7 +112,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             appBar: AppBar(
               leading: GestureDetector(
                 child: const Icon(Icons.account_circle_rounded),
-                onTap: () {},
+                onTap: () => {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ProfileScreen(uid: widget.uid, edit: false)))
+                },
               ),
               leadingWidth: 100, // default is 56
               title: const Text('Chat Room'),

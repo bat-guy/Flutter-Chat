@@ -20,8 +20,8 @@ class DashboardState extends State<Dashboard> {
                 padding: EdgeInsets.all(10),
                 child: Icon(Icons.account_circle_rounded)),
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()));
+              // Navigator.push(context,
+              //     MaterialPageRoute(builder: (context) => ProfileScreen()));
             },
           ),
         ],

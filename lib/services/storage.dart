@@ -25,11 +25,14 @@ class StorageService {
     }
   }
 
-  Future<String?> uploadImage(File? file) async {
+  Future<String?> uploadImage(File? file, String? path) async {
     if (file != null) {
+      final address = (path != null && path.isNotEmpty)
+          ? path
+          : DateTime.now().millisecondsSinceEpoch.toString();
       var snapshot = await FirebaseStorage.instance
           .ref()
-          .child('images/${DateTime.now().millisecondsSinceEpoch.toString()}')
+          .child('images/$address')
           .putFile(file);
       return await snapshot.ref.getDownloadURL();
     } else {

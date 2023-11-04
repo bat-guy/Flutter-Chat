@@ -12,14 +12,14 @@ class ChatUtils {
   final String uid;
   ChatUtils({required this.uid});
 
-  Future<File?> pickImage() async {
+  Future<File?> pickImage(int? quality, int? size) async {
     try {
       final ImagePicker picker = ImagePicker();
       final c = await picker.pickImage(source: ImageSource.gallery);
       if (c != null) {
         File? f = File(c.path);
-        while (f!.lengthSync() > 250000) {
-          f = await ImageUtils().compressFile(File(c.path));
+        while (f!.lengthSync() > (size ?? 250000)) {
+          f = await ImageUtils().compressFile(File(c.path), quality);
         }
         return f;
       }
@@ -33,7 +33,7 @@ class ChatUtils {
 }
 
 class ImageUtils {
-  Future<File?> compressFile(File file) async {
+  Future<File?> compressFile(File file, int? quality) async {
     try {
       final filePath = file.absolute.path;
 
@@ -45,7 +45,7 @@ class ImageUtils {
       var result = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,
         outPath,
-        quality: 5,
+        quality: quality ?? 5,
       );
 
       if (result != null) {

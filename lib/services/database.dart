@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
+import 'package:flutter_mac/models/user.dart';
 
 class DatabaseService {
   final String uid;
@@ -16,7 +18,7 @@ class DatabaseService {
 
   Stream<List<MessageV2>> get messages {
     return _messageCollection
-        .orderBy('timestamp', descending: true)
+        .orderBy(ChatConstants.timestamp, descending: true)
         .limit(_messageLimit)
         .snapshots()
         .map(_messageListFromSnapshot);
@@ -24,44 +26,44 @@ class DatabaseService {
 
   Future sendMessage({required String msg}) async {
     return await _messageCollection.add({
-      'uid': uid,
-      'msg': msg,
-      'message_type': MessageType.TEXT,
-      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
+      ChatConstants.uid: uid,
+      ChatConstants.msg: msg,
+      ChatConstants.messageType: MessageType.TEXT,
+      ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
     });
   }
 
   Future sendImage({required String url}) async {
     return await _messageCollection.add({
-      'uid': uid,
-      'url': url,
-      'message_type': MessageType.IMAGE,
-      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
+      ChatConstants.uid: uid,
+      ChatConstants.url: url,
+      ChatConstants.messageType: MessageType.IMAGE,
+      ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
     });
   }
 
   Future sendGIF({required String url}) async {
     return await _messageCollection.add({
-      'uid': uid,
-      'url': url,
-      'message_type': MessageType.GIF,
-      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
+      ChatConstants.uid: uid,
+      ChatConstants.url: url,
+      ChatConstants.messageType: MessageType.GIF,
+      ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
     });
   }
 
   Future sendSticker({required String url}) async {
     return await _messageCollection.add({
-      'uid': uid,
-      'url': url,
-      'message_type': MessageType.STICKER,
-      'timestamp': DateTime.timestamp().millisecondsSinceEpoch
+      ChatConstants.uid: uid,
+      ChatConstants.url: url,
+      ChatConstants.messageType: MessageType.STICKER,
+      ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
     });
   }
 
   Future<bool> createUser(String uid) async {
     final response = await _userCollection.doc(uid).get();
     if (!response.exists) {
-      await _userCollection.doc(uid).set({'uid': uid});
+      await _userCollection.doc(uid).set({ChatConstants.uid: uid});
       return false;
     } else {
       return true;
@@ -72,7 +74,7 @@ class DatabaseService {
     if (!loading && _lastDoc != null) {
       loading = true;
       var data = await _messageCollection
-          .orderBy('timestamp', descending: true)
+          .orderBy(ChatConstants.timestamp, descending: true)
           .startAfterDocument(_lastDoc!)
           .limit(_messageLimit)
           .get();
@@ -121,8 +123,8 @@ class DatabaseService {
     var data = await _userCollection.get();
     if (data.docs.isNotEmpty) {
       for (var e in data.docs) {
-        if (e.get('uid') != uid) {
-          return e.get('uid');
+        if (e.get(ChatConstants.uid) != uid) {
+          return e.get(ChatConstants.uid);
         }
       }
     }
@@ -130,7 +132,7 @@ class DatabaseService {
   }
 
   setOnlineStatus(bool online) async {
-    await _userCollection.doc(uid).update({'online': online});
+    await _userCollection.doc(uid).update({ChatConstants.online: online});
   }
 
   Stream<bool> getOnlineStatus(String uid) {
@@ -139,6 +141,27 @@ class DatabaseService {
 
   bool _onlineStatus(DocumentSnapshot snapshot) {
     Map<String, dynamic>? map = snapshot.data() as Map<String, dynamic>?;
-    return (map!.containsKey('online')) ? map['online'] : false;
+    return (map!.containsKey(ChatConstants.online))
+        ? map[ChatConstants.online]
+        : false;
+  }
+
+  Future<UserProfile> getUserprofile(String userId) async {
+    final data = await _userCollection.doc(userId).get();
+    return UserProfile.fromMap(data);
+  }
+
+  Future<void> updateUserProfilePicture(
+      String userId, String profilePictureUrl) async {
+    return await _userCollection
+        .doc(userId)
+        .update({ChatConstants.profilePicture: profilePictureUrl});
+  }
+
+  Future<void> updateUserDetails(
+      String userId, String name, String quote) async {
+    return await _userCollection
+        .doc(userId)
+        .update({ChatConstants.name: name, ChatConstants.quote: quote});
   }
 }

@@ -34,8 +34,17 @@ class ChatConstants {
   static String name = 'name';
   static String imageUrl = 'image_url';
   static String uid = 'uid';
+  static String url = 'url';
+  static String messageType = 'message_type';
+  static String timestamp = 'timestamp';
+  static String online = 'online';
+  static String profilePicture = 'profile_picture';
+  static String quote = 'quote';
 }
 
 class KeyConstants {
   static String giphyApiKey = 'jKi0717ZNdPeHV6yCCnKGSwA1lM5sTC8';
+  static String samplePicture =
+      'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-980x653.jpg';
+  static int oneMB = 1000000;
 }

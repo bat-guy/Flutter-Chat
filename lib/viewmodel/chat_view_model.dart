@@ -160,9 +160,9 @@ class ChatViewModel {
           }
         }
       } else {
-        File? imageFile = await _chatUtils.pickImage();
+        File? imageFile = await _chatUtils.pickImage(null, null);
         _viewStateStreamProvidor.add(ViewState.loading);
-        var downloadUrl = await _storageService.uploadImage(imageFile);
+        var downloadUrl = await _storageService.uploadImage(imageFile, null);
         _viewStateStreamProvidor.add(ViewState.viewVisible);
         if (downloadUrl != null) {
           _dbService.sendImage(url: downloadUrl);

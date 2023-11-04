@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 
 class Message {
@@ -19,12 +20,12 @@ class Message {
 
   static Message fromMap(QueryDocumentSnapshot<Object?> e, String uid) {
     return Message(
-        uid: e.get('uid'),
+        uid: e.get(ChatConstants.uid),
         id: e.id,
-        isMe: e.get('uid') == uid,
-        msg: e.get('msg'),
-        timestamp: e.get('timestamp'),
-        imageUrl: e.get('image_url'));
+        isMe: e.get(ChatConstants.uid) == uid,
+        msg: e.get(ChatConstants.msg),
+        timestamp: e.get(ChatConstants.timestamp),
+        imageUrl: e.get(ChatConstants.imageUrl));
   }
 }
 
@@ -47,11 +48,11 @@ class MessageV2 {
 
   Map<String, dynamic> toMapEntry() {
     return {
-      "uid": uid,
-      "msg": msg,
-      "url": url,
-      "message_type": messageType,
-      "timestamp": timestamp,
+      ChatConstants.uid: uid,
+      ChatConstants.msg: msg,
+      ChatConstants.url: url,
+      ChatConstants.messageType: messageType,
+      ChatConstants.timestamp: timestamp,
     };
   }
 
@@ -59,19 +60,21 @@ class MessageV2 {
       DocumentSnapshot<Object?> e, String uid, bool isDate) {
     final v = (isDate)
         ? MessageV2(
-            timestamp: e.get('message_type'), messageType: MessageType.DATE)
+            timestamp: e.get(ChatConstants.messageType),
+            messageType: MessageType.DATE)
         : MessageV2(
             id: e.id,
-            uid: e.get('uid'),
-            isMe: e.get('uid') == uid,
-            msg:
-                e.get('message_type') != MessageType.TEXT ? null : e.get('msg'),
-            messageType: e.get('message_type'),
-            timestamp: e.get('timestamp'),
-            url: (e.get('message_type') == MessageType.GIF ||
-                    e.get('message_type') == MessageType.STICKER ||
-                    e.get('message_type') == MessageType.IMAGE)
-                ? e.get('url')
+            uid: e.get(ChatConstants.uid),
+            isMe: e.get(ChatConstants.uid) == uid,
+            msg: e.get(ChatConstants.messageType) != MessageType.TEXT
+                ? null
+                : e.get(ChatConstants.msg),
+            messageType: e.get(ChatConstants.messageType),
+            timestamp: e.get(ChatConstants.timestamp),
+            url: (e.get(ChatConstants.messageType) == MessageType.GIF ||
+                    e.get(ChatConstants.messageType) == MessageType.STICKER ||
+                    e.get(ChatConstants.messageType) == MessageType.IMAGE)
+                ? e.get(ChatConstants.url)
                 : null);
     return v;
   }
