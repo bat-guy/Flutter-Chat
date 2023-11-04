@@ -5,9 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
+import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
-import 'package:flutter_mac/screens/profile/profile.dart';
-import 'package:flutter_mac/services/auth_service.dart';
 
 import 'package:flutter_mac/viewmodel/chat_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -16,9 +15,7 @@ import 'package:flutter/foundation.dart' as foundation;
 class ChatScreen extends StatefulWidget {
   final String uid;
 
-  ChatScreen({super.key, required this.uid});
-
-  final AuthService _auth = AuthService();
+  const ChatScreen({super.key, required this.uid});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -40,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
-    _viewState = ViewState.viewVisible;
+    _viewState = ViewState.loading;
     _scrollController = ScrollController();
     _chatViewModel = ChatViewModel(uid: widget.uid);
     _focus.addListener(_onFocusChange);
@@ -110,17 +107,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onWillPop: () => _onBackButtonPressed(),
         child: Scaffold(
             appBar: AppBar(
-              leading: GestureDetector(
-                child: const Icon(Icons.account_circle_rounded),
-                onTap: () => {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              ProfileScreen(uid: widget.uid, edit: false)))
-                },
-              ),
-              leadingWidth: 100, // default is 56
               title: const Text('Chat Room'),
               actions: [
                 Image(
@@ -131,11 +117,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   width: 25,
                   height: 25,
                 ),
-                IconButton.filled(
-                    onPressed: () {
-                      widget._auth.signOut();
-                    },
-                    icon: const Icon(Icons.logout)),
+                IconButton(
+                    onPressed: () => ScreenNavigator.openProfileScreen(
+                        widget.uid, false, context),
+                    icon: const Icon(Icons.account_circle_rounded)),
               ],
             ),
             body: switch (_viewState) {
@@ -148,7 +133,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           color: Colors.red,
                         ),
                         Text(
-                          'Uploading Photo. Please wait...',
+                          'Please wait...',
                           style: TextStyle(fontSize: 16, color: Colors.black),
                         )
                       ]),

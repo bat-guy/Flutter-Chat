@@ -70,6 +70,7 @@ class ChatViewModel {
   }
 
   getMessages() {
+    _viewStateStreamProvidor.add(ViewState.loading);
     _dbService.messages.listen((list) {
       try {
         var tempList = <MessageV2>[];

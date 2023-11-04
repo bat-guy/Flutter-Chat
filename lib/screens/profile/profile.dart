@@ -44,15 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           },
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.logout_outlined,
-              color: Colors.white,
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -114,7 +105,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Container(
                       margin: const EdgeInsets.only(left: 330, top: 10),
                       child: IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.green),
+                        icon: const Icon(Icons.edit,
+                            color: Color.fromARGB(255, 211, 21, 7)),
                         onPressed: () {
                           showDialog(
                             context: context,
@@ -154,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Container(
                     margin: const EdgeInsets.only(top: 78, left: 75),
                     child: CircleAvatar(
-                        backgroundColor: Colors.green,
+                        backgroundColor: const Color.fromARGB(255, 211, 21, 7),
                         child: IconButton(
                           onPressed: () => setProfilePicture(),
                           icon: const Icon(Icons.camera_alt_sharp),

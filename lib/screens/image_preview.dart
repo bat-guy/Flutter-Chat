@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mac/viewmodel/profile_view_model.dart';
 
 class ImagePreview extends StatefulWidget {
   final String imageUrl;

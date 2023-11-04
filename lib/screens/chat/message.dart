@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
-import 'package:flutter_mac/screens/image_preview.dart';
+import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 
 class MessageWidget extends StatefulWidget {
   const MessageWidget({super.key, required this.msg});
@@ -35,11 +34,8 @@ class _MyWidgetState extends State<MessageWidget> {
               child: GestureDetector(
                   onTap: () {
                     if (msg.messageType == MessageType.IMAGE) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  ImagePreview(imageUrl: msg.url as String)));
+                      ScreenNavigator.openImagePreview(
+                          msg.url as String, context);
                     }
                   },
                   onLongPress: () async {

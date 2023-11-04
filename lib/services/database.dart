@@ -164,4 +164,17 @@ class DatabaseService {
         .doc(userId)
         .update({ChatConstants.name: name, ChatConstants.quote: quote});
   }
+
+  Future<List<UserProfile>> getUserList(String userId) async {
+    var data = await _userCollection.get();
+    var list = <UserProfile>[];
+    if (data.docs.isNotEmpty) {
+      for (var e in data.docs) {
+        if (e.get(ChatConstants.uid) != uid) {
+          list.add(UserProfile.fromMap(e));
+        }
+      }
+    }
+    return list;
+  }
 }
