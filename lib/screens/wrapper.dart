@@ -22,6 +22,6 @@ class Wrapper extends StatelessWidget {
 
   _checkUser(UserCred user) {
     // DatabaseService(uid: user.uid).createUser(user.uid);
-    return Dashboard(user: user);
+    return Dashboard(userCred: user);
   }
 }

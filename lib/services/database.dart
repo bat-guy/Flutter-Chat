@@ -119,18 +119,6 @@ class DatabaseService {
     return list;
   }
 
-  Future<String> getUserId() async {
-    var data = await _userCollection.get();
-    if (data.docs.isNotEmpty) {
-      for (var e in data.docs) {
-        if (e.get(ChatConstants.uid) != uid) {
-          return e.get(ChatConstants.uid);
-        }
-      }
-    }
-    return '';
-  }
-
   setOnlineStatus(bool online) async {
     await _userCollection.doc(uid).update({ChatConstants.online: online});
   }

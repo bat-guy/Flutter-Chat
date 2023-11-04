@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
+import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
 
@@ -13,9 +14,11 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter/foundation.dart' as foundation;
 
 class ChatScreen extends StatefulWidget {
-  final String uid;
+  final UserCred userCred;
+  final UserProfile userProfile;
 
-  const ChatScreen({super.key, required this.uid});
+  const ChatScreen(
+      {super.key, required this.userCred, required this.userProfile});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -39,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.initState();
     _viewState = ViewState.loading;
     _scrollController = ScrollController();
-    _chatViewModel = ChatViewModel(uid: widget.uid);
+    _chatViewModel = ChatViewModel(widget.userCred, widget.userProfile);
     _focus.addListener(_onFocusChange);
 
     _chatViewModel.init();
@@ -119,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
                 IconButton(
                     onPressed: () => ScreenNavigator.openProfileScreen(
-                        widget.uid, false, context),
+                        widget.userProfile.uid, false, context),
                     icon: const Icon(Icons.account_circle_rounded)),
               ],
             ),

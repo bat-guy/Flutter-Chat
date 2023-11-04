@@ -7,10 +7,10 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Dashboard extends StatefulWidget {
-  final UserCred user;
+  final UserCred userCred;
   final AuthService _auth = AuthService();
 
-  Dashboard({super.key, required this.user});
+  Dashboard({super.key, required this.userCred});
 
   @override
   State<Dashboard> createState() => DashboardState();
@@ -22,7 +22,7 @@ class DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
-    _viewModel = DashboardViewModel(widget.user);
+    _viewModel = DashboardViewModel(widget.userCred);
   }
 
   @override
@@ -32,7 +32,7 @@ class DashboardState extends State<Dashboard> {
           title: const Text('Dashboard'),
           leading: IconButton.filled(
               onPressed: () => ScreenNavigator.openProfileScreen(
-                  widget.user.uid, true, context),
+                  widget.userCred.uid, true, context),
               icon: const Icon(Icons.account_circle_rounded)),
           actions: [
             IconButton.filled(
@@ -63,13 +63,14 @@ class DashboardState extends State<Dashboard> {
                               _setListWidget(context, snapshot.data![index])));
                 }
               }
-              return const SpinKitCircle(color: Colors.white);
+              return const Center(child: SpinKitCircle(color: Colors.white));
             })));
   }
 
   _setListWidget(BuildContext context, UserProfile profile) {
     return GestureDetector(
-      onTap: () => ScreenNavigator.openChatScreen(widget.user.uid, context),
+      onTap: () =>
+          ScreenNavigator.openChatScreen(widget.userCred, profile, context),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(

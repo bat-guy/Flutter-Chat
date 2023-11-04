@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
+import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/services/database.dart';
 import 'package:flutter_mac/services/storage.dart';
 import 'package:flutter_mac/services/utils.dart';
@@ -34,14 +35,15 @@ class ChatViewModel {
   late StorageService _storageService;
   late ChatUtils _chatUtils;
 
-  String uid;
+  UserCred userCred;
+  UserProfile userProfile;
   int _count = 0;
   final _messageSet = HashSet<String>();
 
-  ChatViewModel({required this.uid}) {
-    _dbService = DatabaseService(uid: uid);
-    _chatUtils = ChatUtils(uid: uid);
-    _storageService = StorageService(uid: uid);
+  ChatViewModel(this.userCred, this.userProfile) {
+    _dbService = DatabaseService(uid: userCred.uid);
+    _chatUtils = ChatUtils(uid: userCred.uid);
+    _storageService = StorageService(uid: userCred.uid);
 
     messageStream = _messageStreamProvidor.stream;
     _messageStreamProvidor.add(_messageList);
@@ -60,12 +62,8 @@ class ChatViewModel {
   }
 
   void init() {
-    _dbService.getUserId().then((value) {
-      if (value.isNotEmpty) {
-        _dbService.getOnlineStatus(value).listen((online) {
-          _onlineProvidor.add(online);
-        });
-      }
+    _dbService.getOnlineStatus(userProfile.uid).listen((online) {
+      _onlineProvidor.add(online);
     });
   }
 
