@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_mac/common/constants.dart';
@@ -13,11 +14,16 @@ class ProfileViewModel {
   late final StorageService _storageService;
   late final ChatUtils _chatUtils;
   late UserProfile profile;
+  late StreamController _loadingStreamController;
+  late Stream loadingStream;
 
   ProfileViewModel({required this.uid}) {
     _dbService = DatabaseService(uid: uid);
     _storageService = StorageService(uid: uid);
     _chatUtils = ChatUtils(uid: uid);
+    _loadingStreamController = StreamController();
+    loadingStream = _loadingStreamController.stream;
+    _loadingStreamController.add(false);
   }
 
   Future<UserProfile> getProfile() async {
@@ -26,7 +32,8 @@ class ProfileViewModel {
   }
 
   updateProfilePicture() async {
-    File? imageFile = await _chatUtils.pickImage(95, KeyConstants.oneMB);
+    _loadingStreamController.add(true);
+    File? imageFile = await _chatUtils.pickImage(KeyConstants.oneMB);
     String? url = await _storageService.uploadImage(
         imageFile,
         (profile.profilePicture.isNotEmpty)
@@ -35,6 +42,7 @@ class ProfileViewModel {
     if (url != null) {
       await _dbService.updateUserProfilePicture(uid, url);
     }
+    _loadingStreamController.add(false);
   }
 
   updateUserDetails(String name, String quote) async {

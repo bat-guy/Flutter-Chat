@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -97,7 +98,7 @@ class ChatViewModel {
           _scrollStreamProvidor.add(true);
         }
       } catch (e) {
-        print(e);
+        log("$e");
       }
     });
   }
@@ -159,7 +160,7 @@ class ChatViewModel {
           }
         }
       } else {
-        File? imageFile = await _chatUtils.pickImage(null, null);
+        File? imageFile = await _chatUtils.pickImage(null);
         _viewStateStreamProvidor.add(ViewState.loading);
         var downloadUrl = await _storageService.uploadImage(imageFile, null);
         _viewStateStreamProvidor.add(ViewState.viewVisible);

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,53 +13,58 @@ class ChatUtils {
   final String uid;
   ChatUtils({required this.uid});
 
-  Future<File?> pickImage(int? quality, int? size) async {
+  Future<File?> pickImage(int? size) async {
     try {
       final ImagePicker picker = ImagePicker();
       final c = await picker.pickImage(source: ImageSource.gallery);
       if (c != null) {
-        File? f = File(c.path);
-        while (f!.lengthSync() > (size ?? 250000)) {
-          f = await ImageUtils().compressFile(File(c.path), quality);
-        }
-        return f;
+        return await ImageUtils().compressFile(File(c.path), size);
       }
-      print("c == null");
+      log("file == null");
       return null;
     } catch (e, s) {
-      print('Failed to pick image: $s');
+      log('Failed to pick image: $e');
       return null;
     }
   }
 }
 
 class ImageUtils {
-  Future<File?> compressFile(File file, int? quality) async {
+  Future<File?> compressFile(File file, int? size) async {
     try {
+      var quality = 95;
       final filePath = file.absolute.path;
+      log("File - $filePath");
+      log("File Size - ${file.lengthSync()}");
+      final lastIndex = filePath.lastIndexOf(RegExp(r'.png|.jp'));
+      final String splitted = filePath.substring(0, (lastIndex));
 
-      // Create output file path
-      // eg:- "Volume/VM/abcd_out.jpeg"
-      final lastIndex = filePath.lastIndexOf(new RegExp(r'.png|.jp'));
-      final splitted = filePath.substring(0, (lastIndex));
-      final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
+      final outPath = "${splitted}1${filePath.substring(lastIndex)}";
+
       var result = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,
         outPath,
-        quality: quality ?? 5,
+        quality: quality,
       );
 
       if (result != null) {
-        var finalFile = File(result.path);
-        print(file.lengthSync());
-        print(finalFile.lengthSync());
-
-        return finalFile;
-      } else {
-        return null;
+        quality--;
+        while (await result!.length() > (size ?? 250000)) {
+          result = await FlutterImageCompress.compressAndGetFile(
+            file.absolute.path,
+            outPath,
+            quality: quality,
+          );
+          quality--;
+        }
+        log("File - ${result.path}");
+        log("Final file Size - ${await result.length()}, quality- $quality");
+        return File(result.path);
       }
+      return null;
     } catch (e, s) {
-      print(s);
+      log(e.toString());
+      log(s.toString());
       return null;
     }
   }

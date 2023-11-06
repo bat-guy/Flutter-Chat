@@ -18,12 +18,18 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late ProfileViewModel viewModel;
   late Future<UserProfile> profile;
+  var _loading = false;
 
   @override
   void initState() {
     super.initState();
     viewModel = ProfileViewModel(uid: widget.uid);
-    profile = viewModel.getProfile();
+    setProfile();
+    viewModel.loadingStream.listen((e) {
+      if (mounted) {
+        setState(() => _loading = e);
+      }
+    });
   }
 
   @override
@@ -69,101 +75,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   _getMainWidget(UserProfile data) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.topCenter,
-          children: <Widget>[
-            Container(
-              margin: const EdgeInsets.only(top: 130),
-              height: 120,
-              decoration: const BoxDecoration(color: Colors.white),
-            ),
-            Container(
-              margin: const EdgeInsets.fromLTRB(20, 70, 20, 0),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color.fromARGB(255, 191, 191, 191)
-                        .withOpacity(0.5),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 8), // changes position of shadow
-                  ),
-                ],
-              ),
-              child: Column(
+    return _loading
+        ? const SpinKitCircle(color: Colors.white)
+        : Column(
+            children: [
+              Stack(
+                alignment: Alignment.topCenter,
                 children: <Widget>[
-                  Visibility(
-                    visible: widget.edit,
-                    maintainSize: true,
-                    maintainAnimation: true,
-                    maintainState: true,
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 330, top: 10),
-                      child: IconButton(
-                        icon: const Icon(Icons.edit,
-                            color: Color.fromARGB(255, 211, 21, 7)),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (ctx) => _buildDialog(ctx, data),
-                          );
-                        },
-                      ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 130),
+                    height: 120,
+                    decoration: const BoxDecoration(color: Colors.white),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(20, 70, 20, 0),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color.fromARGB(255, 191, 191, 191)
+                              .withOpacity(0.5),
+                          spreadRadius: 1,
+                          blurRadius: 4,
+                          offset:
+                              const Offset(0, 8), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: <Widget>[
+                        Visibility(
+                          visible: widget.edit,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 330, top: 10),
+                            child: IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color: Color.fromARGB(255, 211, 21, 7)),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (ctx) => _buildDialog(ctx, data),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        Text(data.name,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Text(data.quote),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
-                  Text(data.name,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Text(data.quote),
-                  const SizedBox(height: 16),
+                  GestureDetector(
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ImagePreview(
+                                imageUrl: data.profilePicture.isNotEmpty
+                                    ? data.profilePicture
+                                    : KeyConstants.samplePicture),
+                          )),
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundImage: NetworkImage(
+                            data.profilePicture.isNotEmpty
+                                ? data.profilePicture
+                                : KeyConstants.samplePicture),
+                      )),
+                  Visibility(
+                      visible: widget.edit,
+                      child: Container(
+                          margin: const EdgeInsets.only(top: 78, left: 75),
+                          child: CircleAvatar(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 211, 21, 7),
+                              child: IconButton(
+                                onPressed: () => setProfilePicture(),
+                                icon: const Icon(Icons.camera_alt_sharp),
+                                color: Colors.white,
+                              ))))
                 ],
               ),
-            ),
-            GestureDetector(
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ImagePreview(
-                          imageUrl: data.profilePicture.isNotEmpty
-                              ? data.profilePicture
-                              : KeyConstants.samplePicture),
-                    )),
-                child: CircleAvatar(
-                  radius: 55,
-                  backgroundImage: NetworkImage(data.profilePicture.isNotEmpty
-                      ? data.profilePicture
-                      : KeyConstants.samplePicture),
-                )),
-            Visibility(
-                visible: widget.edit,
-                child: Container(
-                    margin: const EdgeInsets.only(top: 78, left: 75),
-                    child: CircleAvatar(
-                        backgroundColor: const Color.fromARGB(255, 211, 21, 7),
-                        child: IconButton(
-                          onPressed: () => setProfilePicture(),
-                          icon: const Icon(Icons.camera_alt_sharp),
-                          color: Colors.white,
-                        ))))
-          ],
-        ),
-        Container(
-          height: double.maxFinite,
-          color: Colors.white,
-        )
-      ],
-    );
+              Container(
+                height: double.maxFinite,
+                color: Colors.white,
+              )
+            ],
+          );
   }
 
   void setProfilePicture() async {
     await viewModel.updateProfilePicture();
+    setProfile();
   }
 
   _buildDialog(BuildContext ctx, UserProfile data) {
@@ -243,6 +255,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       Navigator.of(context).pop();
     }
+    setProfile();
+  }
+
+  void setProfile() {
     final v = viewModel.getProfile();
     setState(() {
       profile = v;
