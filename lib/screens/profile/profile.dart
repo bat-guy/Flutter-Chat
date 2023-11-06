@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/user.dart';
+import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/screens/image_preview.dart';
 import 'package:flutter_mac/viewmodel/profile_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -136,21 +138,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   GestureDetector(
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ImagePreview(
-                                imageUrl: data.profilePicture.isNotEmpty
-                                    ? data.profilePicture
-                                    : KeyConstants.samplePicture),
-                          )),
-                      child: CircleAvatar(
+                    onTap: () => ScreenNavigator.openImagePreview(
+                        data.profilePicture.isNotEmpty
+                            ? data.profilePicture
+                            : KeyConstants.samplePicture,
+                        context),
+                    child: CachedNetworkImage(
+                      imageUrl: data.profilePicture.isNotEmpty
+                          ? data.profilePicture
+                          : KeyConstants.samplePicture,
+                      imageBuilder: (context, imageProvider) => CircleAvatar(
                         radius: 55,
-                        backgroundImage: NetworkImage(
-                            data.profilePicture.isNotEmpty
-                                ? data.profilePicture
-                                : KeyConstants.samplePicture),
-                      )),
+                        backgroundImage: imageProvider,
+                      ),
+                      placeholder: (context, url) => const CircleAvatar(
+                          radius: 55, child: SpinKitCircle(color: Colors.red)),
+                      errorWidget: (context, url, error) => const CircleAvatar(
+                          radius: 55, child: Icon(Icons.error)),
+                    ),
+                  ),
                   Visibility(
                       visible: widget.edit,
                       child: Container(

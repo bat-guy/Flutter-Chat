@@ -35,10 +35,7 @@ class ProfileViewModel {
     _loadingStreamController.add(true);
     File? imageFile = await _chatUtils.pickImage(KeyConstants.oneMB);
     String? url = await _storageService.uploadImage(
-        imageFile,
-        (profile.profilePicture.isNotEmpty)
-            ? profile.profilePicture
-            : profile.uid);
+        imageFile, '${profile.uid}/${profile.uid}');
     if (url != null) {
       await _dbService.updateUserProfilePicture(uid, url);
     }
