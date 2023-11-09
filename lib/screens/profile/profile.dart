@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
-import 'package:flutter_mac/screens/image_preview.dart';
+import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/viewmodel/profile_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
@@ -20,11 +23,14 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late ProfileViewModel viewModel;
   late Future<UserProfile> profile;
+  final _pref = AppPreference();
+  AppColorPref _colorsPref = AppColorPref(null, null);
   var _loading = false;
 
   @override
   void initState() {
     super.initState();
+    _getColorsPref();
     viewModel = ProfileViewModel(uid: widget.uid);
     setProfile();
     viewModel.loadingStream.listen((e) {
@@ -32,29 +38,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _loading = e);
       }
     });
+    viewModel.toastStream.listen((e) {
+      if (e.isNotEmpty) {
+        if (Platform.isAndroid || Platform.isIOS) {
+          Fluttertoast.showToast(msg: e, toastLength: Toast.LENGTH_SHORT);
+        } else {
+          showDialog(
+              context: context,
+              builder: ((context) => AlertDialog(
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('Okay'),
+                      )
+                    ],
+                    content: Text(e),
+                  )));
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    viewModel.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 211, 21, 7),
+      backgroundColor: _colorsPref.appBarColor,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 211, 21, 7),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_outlined),
-          color: Colors.white,
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              SystemNavigator.pop();
-            }
-          },
-        ),
       ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
+      body: Container(
+        height: double.maxFinite,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            tileMode: TileMode.mirror,
+            // stops: [4],
+            colors: _colorsPref.backgroundColor,
+          ),
+        ),
         child: FutureBuilder(
             future: profile,
             builder: (context, snapshot) {
@@ -70,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   return _getMainWidget(snapshot.data!);
                 }
               }
-              return const SpinKitCircle(color: Colors.white);
+              return const SpinKitHourGlass(color: Colors.white);
             }),
       ),
     );
@@ -78,105 +107,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   _getMainWidget(UserProfile data) {
     return _loading
-        ? const SpinKitCircle(color: Colors.white)
-        : Column(
-            children: [
-              Stack(
-                alignment: Alignment.topCenter,
-                children: <Widget>[
-                  Container(
-                    margin: const EdgeInsets.only(top: 130),
-                    height: 120,
-                    decoration: const BoxDecoration(color: Colors.white),
+        ? const SpinKitHourGlass(color: Colors.white)
+        : SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: <Widget>[
+                Container(
+                  margin: const EdgeInsets.fromLTRB(20, 70, 20, 0),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 236, 238, 236),
+                    borderRadius: BorderRadius.circular(20),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: const Color.fromARGB(255, 191, 191, 191)
+                    //         .withOpacity(0.5),
+                    //     spreadRadius: 1,
+                    //     blurRadius: 4,
+                    //     offset: const Offset(0, 8), // changes position of shadow
+                    //   ),
+                    // ],
                   ),
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(20, 70, 20, 0),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color.fromARGB(255, 191, 191, 191)
-                              .withOpacity(0.5),
-                          spreadRadius: 1,
-                          blurRadius: 4,
-                          offset:
-                              const Offset(0, 8), // changes position of shadow
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        Visibility(
-                          visible: widget.edit,
-                          maintainSize: true,
-                          maintainAnimation: true,
-                          maintainState: true,
-                          child: Container(
-                            margin: const EdgeInsets.only(left: 330, top: 10),
-                            child: IconButton(
-                              icon: const Icon(Icons.edit,
-                                  color: Color.fromARGB(255, 211, 21, 7)),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (ctx) => _buildDialog(ctx, data),
-                                );
-                              },
-                            ),
+                  child: Column(
+                    children: <Widget>[
+                      Visibility(
+                        visible: widget.edit,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: Container(
+                          alignment: Alignment.centerRight,
+                          margin: const EdgeInsets.only(top: 10, right: 10),
+                          child: IconButton(
+                            icon: const Icon(Icons.edit,
+                                color: Color.fromARGB(255, 211, 21, 7)),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (ctx) => _buildDialog(ctx, data),
+                              );
+                            },
                           ),
                         ),
-                        Text(data.name,
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Text(data.quote),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+                      ),
+                      Text(data.name,
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Text(data.quote),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                  GestureDetector(
-                    onTap: () => ScreenNavigator.openImagePreview(
-                        data.profilePicture.isNotEmpty
-                            ? data.profilePicture
-                            : KeyConstants.samplePicture,
-                        context),
-                    child: CachedNetworkImage(
-                      imageUrl: data.profilePicture.isNotEmpty
+                ),
+                GestureDetector(
+                  onTap: () => ScreenNavigator.openImagePreview(
+                      data.profilePicture.isNotEmpty
                           ? data.profilePicture
                           : KeyConstants.samplePicture,
-                      imageBuilder: (context, imageProvider) => CircleAvatar(
+                      context),
+                  child: CachedNetworkImage(
+                    imageUrl: data.profilePicture.isNotEmpty
+                        ? data.profilePicture
+                        : KeyConstants.samplePicture,
+                    imageBuilder: (context, imageProvider) => CircleAvatar(
+                      radius: 55,
+                      backgroundImage: imageProvider,
+                    ),
+                    placeholder: (context, url) => const CircleAvatar(
+                        backgroundColor: Colors.white,
                         radius: 55,
-                        backgroundImage: imageProvider,
+                        child: SpinKitCircle(color: Colors.red)),
+                    errorWidget: (context, url, error) => const CircleAvatar(
+                        radius: 55, child: Icon(Icons.error)),
+                  ),
+                ),
+                Visibility(
+                  visible: widget.edit,
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 78, left: 75),
+                    child: CircleAvatar(
+                      backgroundColor: const Color.fromARGB(255, 211, 21, 7),
+                      child: IconButton(
+                        onPressed: () => setProfilePicture(),
+                        icon: const Icon(Icons.camera_alt_sharp),
+                        color: Colors.white,
                       ),
-                      placeholder: (context, url) => const CircleAvatar(
-                          radius: 55, child: SpinKitCircle(color: Colors.red)),
-                      errorWidget: (context, url, error) => const CircleAvatar(
-                          radius: 55, child: Icon(Icons.error)),
                     ),
                   ),
-                  Visibility(
-                      visible: widget.edit,
-                      child: Container(
-                          margin: const EdgeInsets.only(top: 78, left: 75),
-                          child: CircleAvatar(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 211, 21, 7),
-                              child: IconButton(
-                                onPressed: () => setProfilePicture(),
-                                icon: const Icon(Icons.camera_alt_sharp),
-                                color: Colors.white,
-                              ))))
-                ],
-              ),
-              Container(
-                height: double.maxFinite,
-                color: Colors.white,
-              )
-            ],
-          );
+                )
+              ],
+            ));
   }
 
   void setProfilePicture() async {
@@ -191,68 +213,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final nameController = TextEditingController(text: name);
     final quoteController = TextEditingController(text: quote);
     return AlertDialog(
-        title: const Text("Update Details"),
-        content: StatefulBuilder(builder: (context, setState) {
-          return Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(25)),
-              ),
-              child: loading
-                  ? const Column(mainAxisSize: MainAxisSize.min, children: [
-                      SpinKitCircle(
-                        color: Colors.red,
-                        size: 150,
+      title: const Text("Update Details"),
+      content: StatefulBuilder(builder: (context, setState) {
+        return Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(25)),
+            ),
+            child: loading
+                ? const Column(mainAxisSize: MainAxisSize.min, children: [
+                    SpinKitCircle(
+                      color: Colors.red,
+                      size: 150,
+                    )
+                  ])
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                          controller: nameController,
+                          decoration: InputDecoration(
+                            labelText: name,
+                            hintText: 'Name',
+                            floatingLabelBehavior: FloatingLabelBehavior.never,
+                          ),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (value) {}),
+                      TextField(
+                          controller: quoteController,
+                          decoration: InputDecoration(
+                            labelText: quote,
+                            hintText: 'Quote',
+                            floatingLabelBehavior: FloatingLabelBehavior.never,
+                          ),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (value) {}),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              if (nameController.text.trim().isEmpty) {
+                              } else if (quoteController.text.trim().isEmpty) {
+                              } else {
+                                setState(() {
+                                  name = nameController.text.trim();
+                                  quote = quoteController.text.trim();
+                                  loading = true;
+                                });
+                                updateUserDetails(name, quote, context);
+                              }
+                            },
+                            child: const Text('Update'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          )
+                        ],
                       )
-                    ])
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                            controller: nameController,
-                            decoration: InputDecoration(
-                                labelText: name,
-                                hintText: 'Name',
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.never),
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (value) {}),
-                        TextField(
-                            controller: quoteController,
-                            decoration: InputDecoration(
-                                labelText: quote,
-                                hintText: 'Quote',
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.never),
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (value) {}),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                                onPressed: () {
-                                  if (nameController.text.trim().isEmpty) {
-                                  } else if (quoteController.text
-                                      .trim()
-                                      .isEmpty) {
-                                  } else {
-                                    setState(() {
-                                      name = nameController.text.trim();
-                                      quote = quoteController.text.trim();
-                                      loading = true;
-                                    });
-                                    updateUserDetails(name, quote, context);
-                                  }
-                                },
-                                child: Text('Update')),
-                            TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text('Cancel'))
-                          ],
-                        )
-                      ],
-                    ));
-        }));
+                    ],
+                  ));
+      }),
+    );
+  }
+
+  _getColorsPref() async {
+    var a = await _pref.getAppColorPref();
+    setState(() => _colorsPref = a);
   }
 
   void updateUserDetails(

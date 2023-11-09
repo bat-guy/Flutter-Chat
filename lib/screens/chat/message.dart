@@ -28,9 +28,10 @@ class _MyWidgetState extends State<MessageWidget> {
               margin: _getBoxMargin(msg),
               padding: _getBoxPadding(msg),
               decoration: BoxDecoration(
-                  color: _getBoxColor(msg),
-                  borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: _getBoxShadow(msg)),
+                color: _getBoxColor(msg),
+                borderRadius: BorderRadius.circular(8.0),
+                // boxShadow: _getBoxShadow(msg),
+              ),
               child: GestureDetector(
                   onTap: () {
                     if (msg.messageType == MessageType.IMAGE) {

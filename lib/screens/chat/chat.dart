@@ -7,7 +7,10 @@ import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
+import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
+import 'package:flutter_mac/services/utils.dart';
 
 import 'package:flutter_mac/viewmodel/chat_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -35,11 +38,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   var _messageLoaderVisible = false;
   var _newMessage = false;
   var _online = true;
+  final _pref = AppPreference();
+  AppColorPref _colorsPref = AppColorPref(null, null);
 
   @override
   initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+    _getColorsPref();
     _viewState = ViewState.loading;
     _scrollController = ScrollController();
     _chatViewModel = ChatViewModel(widget.userCred, widget.userProfile);
@@ -58,13 +64,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (state) _messageController.clear();
     });
     _chatViewModel.messageLoaderStream.listen((isVisible) {
-      setState(() => _messageLoaderVisible = isVisible);
+      if (mounted) setState(() => _messageLoaderVisible = isVisible);
     });
     _chatViewModel.newMessageStream.listen((isVisible) {
-      setState(() => _newMessage = isVisible);
+      if (mounted) setState(() => _newMessage = isVisible);
     });
     _chatViewModel.onlineStream.listen((online) {
-      setState(() => _online = online);
+      if (mounted) setState(() => _online = online);
     });
 
     _chatViewModel.getMessages();
@@ -76,10 +82,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     switch (state) {
       case AppLifecycleState.resumed:
-        setState(() => _chatViewModel.setOnlineStatus(true));
+        _chatViewModel.setOnlineStatus(true);
         break;
       case AppLifecycleState.paused:
-        setState(() => _chatViewModel.setOnlineStatus(false));
+        _chatViewModel.setOnlineStatus(false);
         // print('paused');
         break;
       case AppLifecycleState.detached:
@@ -99,6 +105,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
+    _chatViewModel.dispose();
     _focus.removeListener(_onFocusChange);
     _focus.dispose();
   }
@@ -110,7 +117,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onWillPop: () => _onBackButtonPressed(),
         child: Scaffold(
             appBar: AppBar(
-              title: const Text('Chat Room'),
+              backgroundColor: _colorsPref.appBarColor,
+              title: Text(widget.userProfile.name),
               actions: [
                 Image(
                   image: const AssetImage('assets/images/dot.png'),
@@ -141,130 +149,144 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         )
                       ]),
                 ),
-              ViewState.viewVisible => Column(
-                  children: <Widget>[
-                    Expanded(
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.black12,
+              ViewState.viewVisible => Container(
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    tileMode: TileMode.decal,
+                    colors: _colorsPref.backgroundColor,
+                  )),
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.black12,
+                              ),
+                              child: StreamBuilder(
+                                  stream: _chatViewModel.messageStream,
+                                  builder: (context, snapshot) =>
+                                      _setListWidget(snapshot)),
                             ),
-                            child: StreamBuilder(
-                                stream: _chatViewModel.messageStream,
-                                builder: (context, snapshot) =>
-                                    _setListWidget(snapshot)),
-                          ),
-                          const Visibility(
-                              visible: false,
-                              child: SpinKitCircle(
-                                color: Colors.red,
-                              )),
-                          Visibility(
-                            visible: _newMessage,
-                            child: Container(
-                                margin: const EdgeInsets.all(5),
-                                child: FloatingActionButton(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 64, 161, 29),
-                                  onPressed: () {
-                                    _scrollToBottom();
-                                    setState(() => _newMessage = false);
-                                  },
-                                  child: const Icon(Icons.arrow_downward_sharp),
+                            const Visibility(
+                                visible: false,
+                                child: SpinKitCircle(
+                                  color: Colors.red,
                                 )),
-                          )
-                        ],
+                            Visibility(
+                              visible: _newMessage,
+                              child: Container(
+                                  margin: const EdgeInsets.all(5),
+                                  child: FloatingActionButton(
+                                    backgroundColor: Colors.amber,
+                                    onPressed: () {
+                                      _scrollToBottom();
+                                      setState(() => _newMessage = false);
+                                    },
+                                    child:
+                                        const Icon(Icons.arrow_downward_sharp),
+                                  )),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: <Widget>[
-                          IconButton(
-                            icon: const Icon(Icons.emoji_emotions_outlined),
-                            onPressed: () => setState(() {
-                              if (!_emojiShowing) _focus.unfocus();
-                              _emojiShowing = !_emojiShowing;
-                            }),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              minLines: 1,
-                              maxLines: 5,
-                              focusNode: _focus,
-                              controller: _messageController,
-                              decoration: InputDecoration(
-                                  labelText: StringConstants.typeMessage,
-                                  floatingLabelBehavior:
-                                      FloatingLabelBehavior.never),
-                              textInputAction: TextInputAction.done,
-                              onSubmitted: (value) => _chatViewModel
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        color: Colors.white70,
+                        child: Row(
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.emoji_emotions_outlined),
+                              onPressed: () => setState(() {
+                                if (!_emojiShowing) _focus.unfocus();
+                                _emojiShowing = !_emojiShowing;
+                              }),
+                            ),
+                            Expanded(
+                              child: TextField(
+                                minLines: 1,
+                                maxLines: 5,
+                                focusNode: _focus,
+                                controller: _messageController,
+                                decoration: InputDecoration(
+                                    labelText: StringConstants.typeMessage,
+                                    floatingLabelBehavior:
+                                        FloatingLabelBehavior.never),
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (value) =>
+                                    _chatViewModel.sendMessage(
+                                        _messageController.text.trim()),
+                              ),
+                            ),
+                            GestureDetector(
+                              child: const Icon(Icons.attach_file),
+                              onTapDown: (TapDownDetails details) async {
+                                _showPopupMenu(details.globalPosition);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.send),
+                              onPressed: () => _chatViewModel
                                   .sendMessage(_messageController.text.trim()),
                             ),
-                          ),
-                          GestureDetector(
-                            child: const Icon(Icons.attach_file),
-                            onTapDown: (TapDownDetails details) async {
-                              _showPopupMenu(details.globalPosition);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.send),
-                            onPressed: () => _chatViewModel
-                                .sendMessage(_messageController.text.trim()),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Offstage(
-                      offstage: !_emojiShowing,
-                      child: SizedBox(
-                          height: 250,
-                          child: EmojiPicker(
-                            textEditingController: _messageController,
-                            onBackspacePressed: _onBackspacePressed,
-                            config: Config(
-                              columns: 7,
-                              // Issue: https://github.com/flutter/flutter/issues/28894
-                              emojiSizeMax: 32 *
-                                  (foundation.defaultTargetPlatform ==
-                                          TargetPlatform.iOS
-                                      ? 1.30
-                                      : 1.0),
-                              verticalSpacing: 0,
-                              horizontalSpacing: 0,
-                              gridPadding: EdgeInsets.zero,
-                              initCategory: Category.RECENT,
-                              bgColor: const Color(0xFFF2F2F2),
-                              indicatorColor: Colors.blue,
-                              iconColor: Colors.grey,
-                              iconColorSelected: Colors.blue,
-                              backspaceColor: Colors.blue,
-                              skinToneDialogBgColor: Colors.white,
-                              skinToneIndicatorColor: Colors.grey,
-                              enableSkinTones: true,
-                              recentTabBehavior: RecentTabBehavior.RECENT,
-                              recentsLimit: 28,
-                              replaceEmojiOnLimitExceed: false,
-                              noRecents: const Text(
-                                'No Recents',
-                                style: TextStyle(
-                                    fontSize: 20, color: Colors.black26),
-                                textAlign: TextAlign.center,
+                      Offstage(
+                        offstage: !_emojiShowing,
+                        child: SizedBox(
+                            height: 250,
+                            child: EmojiPicker(
+                              textEditingController: _messageController,
+                              onBackspacePressed: _onBackspacePressed,
+                              config: Config(
+                                columns: 7,
+                                // Issue: https://github.com/flutter/flutter/issues/28894
+                                emojiSizeMax: 32 *
+                                    (foundation.defaultTargetPlatform ==
+                                            TargetPlatform.macOS
+                                        ? 1.30
+                                        : 1.0),
+
+                                initCategory: Category.RECENT,
+                                bgColor: const Color(0xFFF2F2F2),
+                                indicatorColor: Colors.blue,
+                                iconColor: Colors.grey,
+                                iconColorSelected: Colors.blue,
+                                backspaceColor: Colors.blue,
+                                skinToneDialogBgColor: Colors.white,
+                                skinToneIndicatorColor: Colors.grey,
+                                enableSkinTones: true,
+                                recentTabBehavior: RecentTabBehavior.RECENT,
+                                recentsLimit: 28,
+                                replaceEmojiOnLimitExceed: false,
+                                noRecents: const Text(
+                                  'No Recents',
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.black26),
+                                  textAlign: TextAlign.center,
+                                ),
+                                loadingIndicator: const SizedBox.shrink(),
+                                tabIndicatorAnimDuration: kTabScrollDuration,
+                                categoryIcons: const CategoryIcons(),
+                                buttonMode: ButtonMode.CUPERTINO,
+                                checkPlatformCompatibility: true,
                               ),
-                              loadingIndicator: const SizedBox.shrink(),
-                              tabIndicatorAnimDuration: kTabScrollDuration,
-                              categoryIcons: const CategoryIcons(),
-                              buttonMode: ButtonMode.CUPERTINO,
-                              checkPlatformCompatibility: true,
-                            ),
-                          )),
-                    ),
-                  ],
-                ),
+                            )),
+                      ),
+                    ],
+                  ),
+                )
             }));
+  }
+
+  _getColorsPref() async {
+    var a = await _pref.getAppColorPref();
+    setState(() => _colorsPref = a);
   }
 
   void _scrollListener() async {
@@ -333,10 +355,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.minScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeIn,
-    );
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.minScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeIn,
+      );
+    }
   }
 }

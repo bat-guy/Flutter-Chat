@@ -95,13 +95,10 @@ class DatabaseService {
       switch (e.type) {
         case DocumentChangeType.added:
           list.add(MessageV2.fromMap(e.doc, uid, false));
-          print('added');
           break;
         case DocumentChangeType.modified:
-          print('modified');
           break;
         case DocumentChangeType.removed:
-          print('removed');
           break;
       }
     }

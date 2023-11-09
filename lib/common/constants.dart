@@ -27,6 +27,7 @@ class StringConstants {
   static String enterName = 'Enter a name';
   static String update = 'UPDATE';
   static String typeMessage = 'Type a message...';
+  static String useSmallerImage = 'Please use a smaller image.';
 }
 
 class ChatConstants {
@@ -47,4 +48,8 @@ class KeyConstants {
   static String samplePicture =
       'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-980x653.jpg';
   static int oneMB = 1000000;
+}
+
+class AppColors {
+  static Color appRed = const Color.fromARGB(255, 211, 21, 7);
 }

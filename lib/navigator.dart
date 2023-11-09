@@ -3,6 +3,7 @@ import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/screens/chat/chat.dart';
 import 'package:flutter_mac/screens/image_preview.dart';
 import 'package:flutter_mac/screens/profile/profile.dart';
+import 'package:flutter_mac/screens/settings.dart';
 
 class ScreenNavigator {
   static String chatScreen = 'chat';
@@ -19,6 +20,11 @@ class ScreenNavigator {
 
   static openImagePreview(String imageUrl, BuildContext context) {
     _push(context, ImagePreview(imageUrl: imageUrl));
+  }
+
+  static openSettingsPage(BuildContext context) {
+    return Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const SettingsScreen()));
   }
 
   static _push(BuildContext context, Widget widget) {

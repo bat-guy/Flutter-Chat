@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
@@ -14,27 +15,19 @@ import 'package:flutter_mac/services/utils.dart';
 import 'package:giphy_get/giphy_get.dart';
 
 class ChatViewModel {
-  late Stream<List<MessageV2>> messageStream;
-  final StreamController<List<MessageV2>> _messageStreamProvidor =
-      StreamController();
-  late Stream<ViewState> viewStateStream;
-  final StreamController<ViewState> _viewStateStreamProvidor =
-      StreamController();
-  late Stream<bool> messageControllerStream;
-  final StreamController<bool> _messageControllerStreamProvidor =
-      StreamController();
-  late Stream<bool> scrollStream;
-  final StreamController<bool> _scrollStreamProvidor = StreamController();
-  late Stream<bool> messageLoaderStream;
-  final StreamController<bool> _messageLoaderProvidor = StreamController();
-  late Stream<bool> newMessageStream;
-  final StreamController<bool> _newMessageProvidor = StreamController();
-  late Stream<bool> onlineStream;
-  final StreamController<bool> _onlineProvidor = StreamController();
+  final _messageStreamProvidor = StreamController<List<MessageV2>>();
+  final _viewStateStreamProvidor = StreamController<ViewState>();
+  final _messageControllerStreamProvidor = StreamController<bool>();
+  final _scrollStreamProvidor = StreamController<bool>();
+  final _messageLoaderProvidor = StreamController<bool>();
+  final _toastStreamController = StreamController<String>();
+
+  final _newMessageProvidor = StreamController<bool>();
+  final _onlineProvidor = StreamController<bool>();
   final _messageList = <MessageV2>[];
   late DatabaseService _dbService;
   late StorageService _storageService;
-  late ChatUtils _chatUtils;
+  late ImageUtils _imageUtils;
 
   UserCred userCred;
   UserProfile userProfile;
@@ -43,22 +36,15 @@ class ChatViewModel {
 
   ChatViewModel(this.userCred, this.userProfile) {
     _dbService = DatabaseService(uid: userCred.uid);
-    _chatUtils = ChatUtils(uid: userCred.uid);
+    _imageUtils = ImageUtils();
     _storageService = StorageService(uid: userCred.uid);
 
-    messageStream = _messageStreamProvidor.stream;
     _messageStreamProvidor.add(_messageList);
-    viewStateStream = _viewStateStreamProvidor.stream;
     _viewStateStreamProvidor.add(ViewState.viewVisible);
-    scrollStream = _scrollStreamProvidor.stream;
     _scrollStreamProvidor.add(false);
-    messageControllerStream = _messageControllerStreamProvidor.stream;
     _messageControllerStreamProvidor.add(false);
-    messageLoaderStream = _messageLoaderProvidor.stream;
     _messageLoaderProvidor.add(_dbService.loading);
-    newMessageStream = _newMessageProvidor.stream;
     _newMessageProvidor.add(false);
-    onlineStream = _onlineProvidor.stream;
     _onlineProvidor.add(false);
   }
 
@@ -67,6 +53,15 @@ class ChatViewModel {
       _onlineProvidor.add(online);
     });
   }
+
+  Stream<List<MessageV2>> get messageStream => _messageStreamProvidor.stream;
+  Stream<ViewState> get viewStateStream => _viewStateStreamProvidor.stream;
+  Stream<bool> get messageControllerStream =>
+      _messageControllerStreamProvidor.stream;
+  Stream<bool> get scrollStream => _scrollStreamProvidor.stream;
+  Stream<bool> get messageLoaderStream => _messageLoaderProvidor.stream;
+  Stream<bool> get newMessageStream => _newMessageProvidor.stream;
+  Stream<bool> get onlineStream => _onlineProvidor.stream;
 
   getMessages() {
     _viewStateStreamProvidor.add(ViewState.loading);
@@ -144,11 +139,11 @@ class ChatViewModel {
     if (value != null) {
       if (value == 1) {
         GiphyGif? gif = await GiphyGet.getGif(
-          context: context, //Required
-          apiKey: KeyConstants.giphyApiKey,
-          tabColor: Colors.teal,
-          debounceTimeInMilliseconds: 350,
-        );
+            context: context, //Required
+            apiKey: KeyConstants.giphyApiKey,
+            tabColor: Colors.teal,
+            debounceTimeInMilliseconds: 350,
+            showEmojis: false);
         if (gif != null &&
             gif.images != null &&
             gif.images!.fixedHeightDownsampled != null) {
@@ -160,13 +155,37 @@ class ChatViewModel {
           }
         }
       } else {
-        File? imageFile = await _chatUtils.pickImage(null);
+        Pair<File?, ImageStatus?> imageFile = await _imageUtils.pickImage(null);
         _viewStateStreamProvidor.add(ViewState.loading);
-        var downloadUrl = await _storageService.uploadImage(imageFile, null);
-        _viewStateStreamProvidor.add(ViewState.viewVisible);
-        if (downloadUrl != null) {
-          _dbService.sendImage(url: downloadUrl);
-          _messageControllerStreamProvidor.add(true);
+        if (imageFile.second != null) {
+          _viewStateStreamProvidor.add(ViewState.viewVisible);
+          switch (imageFile.second) {
+            case ImageStatus.IMAGE_SIZE_OVERLOAD:
+              _toastStreamController.add(StringConstants.useSmallerImage);
+              break;
+            case ImageStatus.IMAGE_PICKER_NULL:
+              _toastStreamController
+                  .add('Error picking the image, please try again');
+              break;
+            case ImageStatus.IMAGE_PICKER_EXCEPTION:
+              _toastStreamController
+                  .add('Error picking the image, please try again');
+              break;
+            case ImageStatus.IMAGE_COMPRESSION_NULL:
+              break;
+            case ImageStatus.IMAGE_COMPRESSION_EXCEPTION:
+              break;
+            case null:
+              break;
+          }
+        } else {
+          var downloadUrl =
+              await _storageService.uploadImage(imageFile.first, null);
+          _viewStateStreamProvidor.add(ViewState.viewVisible);
+          if (downloadUrl != null) {
+            _dbService.sendImage(url: downloadUrl);
+            _messageControllerStreamProvidor.add(true);
+          }
         }
       }
     }
@@ -192,5 +211,15 @@ class ChatViewModel {
 
   setOnlineStatus(bool online) async {
     await _dbService.setOnlineStatus(online);
+  }
+
+  void dispose() {
+    _messageStreamProvidor.close();
+    _viewStateStreamProvidor.close();
+    _messageControllerStreamProvidor.close();
+    _scrollStreamProvidor.close();
+    _messageLoaderProvidor.close();
+    _newMessageProvidor.close();
+    _onlineProvidor.close();
   }
 }

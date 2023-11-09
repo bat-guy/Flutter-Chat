@@ -21,4 +21,8 @@ class StorageService {
       return null;
     }
   }
+
+  Future<String?> uploadProfileImage(File? file) async {
+    return uploadImage(file, '$uid/$uid');
+  }
 }
