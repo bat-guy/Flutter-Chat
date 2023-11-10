@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/common/pair.dart';
+import 'package:flutter_mac/models/message.dart';
+import 'package:flutter_mac/models/message_preference.dart';
+import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/preference/app_color_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
+import 'package:flutter_mac/screens/chat/message.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -15,105 +19,283 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreen extends State<SettingsScreen> {
   final _pref = AppPreference();
   var _valueChanged = false;
+  final _fontSizeList = <int>[];
 
-  AppColorPref _colorsPref = AppColorPref(null, null);
+  AppColorPref _colorsPref = AppColorPref();
+  MessagePref _messagePref = MessagePref();
 
   @override
   void initState() {
     super.initState();
     _getColorsPref();
+    for (var i = 10; i <= 30; i++) {
+      _fontSizeList.add(i);
+    }
   }
 
   _getColorsPref() async {
     var a = await _pref.getAppColorPref();
-    setState(() => _colorsPref = a);
+    var b = await _pref.getMessagePref();
+    setState(() {
+      _colorsPref = a;
+      _messagePref = b;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async {
-          Navigator.pop(context, _valueChanged);
-          return false;
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: _colorsPref.appBarColor,
-          ),
-          body: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                tileMode: TileMode.mirror,
-                colors: _colorsPref.backgroundColor,
-              ),
-            ),
-            child: Column(
-              children: [
-                _getColorRow('AppBar Color :', [_colorsPref.appBarColor], (c) {
-                  setState(() => _colorsPref.appBarColor = c[0]);
-                  _pref.setAppBarColor(c[0]);
-                  _valueChanged = true;
-                }, false),
-                _getColorRow(
-                  'Background Color :',
-                  _colorsPref.backgroundColor,
-                  (List<Color> c) => setState(() {
-                    _colorsPref.backgroundColor = c;
-                    _pref.setBackgroundColor(c);
-                    _valueChanged = true;
-                  }),
-                  true,
-                )
+      onWillPop: () async {
+        Navigator.pop(context, _valueChanged);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Settings'),
+          backgroundColor: _colorsPref.appBarColor,
+        ),
+        body: Container(
+          height: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              tileMode: TileMode.mirror,
+              colors: [
+                _colorsPref.appBackgroundColor.first,
+                _colorsPref.appBackgroundColor.second
               ],
             ),
           ),
-        ));
-  }
-
-  Container _getColorRow(String type, List<Color> color,
-      Function(List<Color>) callback, bool twoColors) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(5)),
-          border: Border.all(color: Colors.white),
-          color: Colors.amber),
-      child: Row(
-        children: [
-          Text(
-            type,
-            style: GoogleFonts.montserrat(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _getRowContainer(
+                    Column(children: [
+                      _getColorRow(
+                          type: 'AppBar Color :',
+                          color: _colorsPref.appBarColor,
+                          singleColorCallback: (c) {
+                            _pref.setAppBarColor(c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          }),
+                      const SizedBox(height: 10),
+                      _getColorRow(
+                        type: 'Background Color :',
+                        colorPair: _colorsPref.appBackgroundColor,
+                        colorPairCallback: (c) => setState(() {
+                          _pref.setAppBackgroundColor(c);
+                          _getColorsPref();
+                          _valueChanged = true;
+                        }),
+                      ),
+                    ]),
+                    Colors.blue),
+                _getRowContainer(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _getColorRow(
+                          type: 'Sender Text Color:',
+                          color: _messagePref.senderTextColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.senderTextColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Sender Background Color:',
+                          color: _messagePref.senderBackgroundColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.senderBackgroundColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Reciever Text Color:',
+                          color: _messagePref.receiverTextColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.receiverTextColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Reciever Background Color:',
+                          color: _messagePref.receiverBackgroundColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.receiverBackgroundColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Sender Time Color:',
+                          color: _messagePref.senderTimeColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.senderTimeColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Receiver Time Color:',
+                          color: _messagePref.receiverTimeColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.receiverTimeColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Date Background Color:',
+                          color: _messagePref.dateBackgroundColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.dateBackgroundColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getColorRow(
+                          type: 'Date Text Color:',
+                          color: _messagePref.dateTextColor,
+                          singleColorCallback: (c) {
+                            _pref.setMessageColorPreference(
+                                MessagePreference.dateTextColor, c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        _getDropDownView(
+                            'Date Text Size:', _messagePref.dateTextSize,
+                            (value) {
+                          _pref.setMessageTimePreference(
+                              MessagePreference.dateTextSize, value.toInt());
+                          _getColorsPref();
+                          _valueChanged = true;
+                        }),
+                        const SizedBox(height: 5),
+                        _getDropDownView(
+                            'Message Text Size:', _messagePref.messageTextSize,
+                            (value) {
+                          _pref.setMessageTimePreference(
+                              MessagePreference.messageTextSize, value.toInt());
+                          _getColorsPref();
+                          _valueChanged = true;
+                        }),
+                        const SizedBox(height: 5),
+                        _getDropDownView('Message Time Text Size:',
+                            _messagePref.messageTimeSize, (value) {
+                          _pref.setMessageTimePreference(
+                              MessagePreference.messageTimeSize, value.toInt());
+                          _getColorsPref();
+                          _valueChanged = true;
+                        }),
+                        MessageWidget(
+                          msg: MessageV2(
+                            timestamp: 1699591493533,
+                            messageType: MessageType.DATE,
+                          ),
+                          messagePref: _messagePref,
+                        ),
+                        MessageWidget(
+                          msg: MessageV2(
+                            timestamp: 1699591493533,
+                            messageType: MessageType.TEXT,
+                            msg: 'Hello',
+                            isMe: true,
+                          ),
+                          messagePref: _messagePref,
+                        ),
+                        MessageWidget(
+                          msg: MessageV2(
+                            timestamp: 1699591493533,
+                            messageType: MessageType.TEXT,
+                            msg: 'Hello',
+                            isMe: false,
+                          ),
+                          messagePref: _messagePref,
+                        )
+                      ],
+                    ),
+                    Colors.transparent)
+              ],
             ),
           ),
-          const SizedBox(width: 20),
-          twoColors
-              ? _getGradientView(color, callback)
-              : GestureDetector(
-                  onTap: () => _showPicker(color[0], callback),
-                  child: Container(
-                    height: 20,
-                    width: 50,
-                    decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                        border: Border.all(color: Colors.white),
-                        color: color[0]),
-                  ),
-                )
-        ],
+        ),
       ),
     );
   }
 
-  _getGradientView(List<Color> list, Function(List<Color>) callback) {
+  _getColorRow(
+      {required String type,
+      Color? color,
+      Pair<Color, Color>? colorPair,
+      Function(Color)? singleColorCallback,
+      Function(Pair<Color, Color>)? colorPairCallback}) {
+    return Row(
+      children: [
+        Text(
+          type,
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 20),
+        colorPair != null
+            ? _getGradientView(colorPair, colorPairCallback!)
+            : GestureDetector(
+                onTap: () => _showPicker(color!, singleColorCallback!),
+                child: Container(
+                  height: 20,
+                  width: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(5),
+                      ),
+                      border: Border.all(color: Colors.white),
+                      color: color),
+                ),
+              )
+      ],
+    );
+  }
+
+  _getRowContainer(Widget child, Color backgroundColor) {
+    return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.only(top: 10),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(5)),
+            border: Border.all(color: Colors.white),
+            color: backgroundColor),
+        child: child);
+  }
+
+  _getGradientView(
+      Pair<Color, Color> list, Function(Pair<Color, Color>) callback) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(
@@ -123,19 +305,29 @@ class _SettingsScreen extends State<SettingsScreen> {
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         GestureDetector(
-          onTap: () =>
-              _showPicker(list[0], (c) => callback.call([c[0], list[1]])),
+          onTap: () => _showPicker(
+              list.first, (c) => callback.call(Pair(c, list.second))),
           child: Container(
-            color: list[0],
+            decoration: BoxDecoration(
+                color: list.first,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(5),
+                  bottomLeft: Radius.circular(5),
+                )),
             height: 20,
             width: 50,
           ),
         ),
         GestureDetector(
-          onTap: () =>
-              _showPicker(list[1], (c) => callback.call([list[0], c[0]])),
+          onTap: () => _showPicker(
+              list.second, (c) => callback.call(Pair(list.first, c))),
           child: Container(
-            color: list[1],
+            decoration: BoxDecoration(
+                color: list.second,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(5),
+                  bottomRight: Radius.circular(5),
+                )),
             height: 20,
             width: 50,
           ),
@@ -144,7 +336,38 @@ class _SettingsScreen extends State<SettingsScreen> {
     );
   }
 
-  _showPicker(Color color, Function(List<Color>) callback) {
+  _getDropDownView(String label, int value, Function(int) callback) {
+    return Row(children: [
+      Text(
+        label,
+        style: GoogleFonts.montserrat(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(width: 20),
+      Container(
+          padding: const EdgeInsets.only(left: 5),
+          decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(5)),
+              color: Colors.white),
+          child: DropdownButton<int>(
+              value: value,
+              underline: const SizedBox(),
+              items: _fontSizeList
+                  .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e.toString()),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) callback.call(value);
+              }))
+    ]);
+  }
+
+  _showPicker(Color color, Function(Color) callback) {
     showDialog(
         context: context,
         builder: (ctx) {
@@ -163,7 +386,7 @@ class _SettingsScreen extends State<SettingsScreen> {
               ElevatedButton(
                 child: const Text('Got it'),
                 onPressed: () {
-                  callback.call([pickerColor]);
+                  callback.call(pickerColor);
                   Navigator.of(context).pop();
                 },
               ),

@@ -21,7 +21,7 @@ class Dashboard extends StatefulWidget {
 class DashboardState extends State<Dashboard> {
   final _pref = AppPreference();
   late DashboardViewModel _viewModel;
-  AppColorPref _colorsPref = AppColorPref(null, null);
+  AppColorPref _colorsPref = AppColorPref();
 
   @override
   void initState() {
@@ -72,7 +72,10 @@ class DashboardState extends State<Dashboard> {
                   end: Alignment.bottomCenter,
                   tileMode: TileMode.decal,
                   // stops: [4],
-                  colors: _colorsPref.backgroundColor,
+                  colors: [
+                    _colorsPref.appBackgroundColor.first,
+                    _colorsPref.appBackgroundColor.second
+                  ],
                 ),
               ),
               child: _getMainWidget(snapshot));

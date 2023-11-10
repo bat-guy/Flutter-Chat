@@ -39,7 +39,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   var _newMessage = false;
   var _online = true;
   final _pref = AppPreference();
-  AppColorPref _colorsPref = AppColorPref(null, null);
+  AppColorPref _colorsPref = AppColorPref();
+  MessagePref _messagePref = MessagePref();
 
   @override
   initState() {
@@ -155,7 +156,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     tileMode: TileMode.decal,
-                    colors: _colorsPref.backgroundColor,
+                    colors: [
+                      _colorsPref.appBackgroundColor.first,
+                      _colorsPref.appBackgroundColor.second
+                    ],
                   )),
                   child: Column(
                     children: <Widget>[
@@ -170,7 +174,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               child: StreamBuilder(
                                   stream: _chatViewModel.messageStream,
                                   builder: (context, snapshot) =>
-                                      _setListWidget(snapshot)),
+                                      _setListWidget(snapshot, _messagePref)),
                             ),
                             const Visibility(
                                 visible: false,
@@ -286,7 +290,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   _getColorsPref() async {
     var a = await _pref.getAppColorPref();
-    setState(() => _colorsPref = a);
+    var b = await _pref.getMessagePref();
+    setState(() {
+      _colorsPref = a;
+      _messagePref = b;
+    });
   }
 
   void _scrollListener() async {
@@ -315,14 +323,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  Widget _setListWidget(AsyncSnapshot<List<MessageV2>> snapshot) {
+  Widget _setListWidget(
+      AsyncSnapshot<List<MessageV2>> snapshot, MessagePref pref) {
     return (snapshot.hasData && snapshot.data != null)
         ? ListView.builder(
             itemCount: snapshot.data!.length,
             controller: _scrollController,
             reverse: true,
             itemBuilder: (context, index) {
-              return MessageWidget(msg: snapshot.data![index]);
+              return MessageWidget(
+                  msg: snapshot.data![index], messagePref: pref);
             })
         : const Center(child: Text('No data...'));
   }

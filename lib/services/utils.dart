@@ -126,7 +126,8 @@ class ImageUtils {
 
 class TextUtils {
   //This method takes a raw string and gives out a List<TexSpan> that contain normal text and links.
-  static List<TextSpan> extractLinkText(String rawString) {
+  static List<TextSpan> extractLinkText(
+      String rawString, Color textColor, int fontSize) {
     List<TextSpan> textSpan = [];
 
     final urlRegExp = RegExp(
@@ -137,8 +138,8 @@ class TextUtils {
         TextSpan(
           text: linkString,
           style: GoogleFonts.montserrat(
-              color: Colors.white,
-              fontSize: 16,
+              color: textColor,
+              fontSize: fontSize.toDouble(),
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline),
           recognizer: TapGestureRecognizer()
@@ -159,7 +160,9 @@ class TextUtils {
         TextSpan(
           text: normalText,
           style: GoogleFonts.montserrat(
-              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+              color: textColor,
+              fontSize: fontSize.toDouble(),
+              fontWeight: FontWeight.w600),
         ),
       );
       return normalText;

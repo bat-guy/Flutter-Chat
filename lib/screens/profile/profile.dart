@@ -24,7 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late ProfileViewModel viewModel;
   late Future<UserProfile> profile;
   final _pref = AppPreference();
-  AppColorPref _colorsPref = AppColorPref(null, null);
+  AppColorPref _colorsPref = AppColorPref();
   var _loading = false;
 
   @override
@@ -81,7 +81,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             end: Alignment.bottomCenter,
             tileMode: TileMode.mirror,
             // stops: [4],
-            colors: _colorsPref.backgroundColor,
+            colors: [
+              _colorsPref.appBackgroundColor.first,
+              _colorsPref.appBackgroundColor.second
+            ],
           ),
         ),
         child: FutureBuilder(

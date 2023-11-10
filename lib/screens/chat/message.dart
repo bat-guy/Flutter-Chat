@@ -4,13 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/navigator.dart';
+import 'package:flutter_mac/preference/app_color_preference.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class MessageWidget extends StatefulWidget {
-  const MessageWidget({super.key, required this.msg});
+  const MessageWidget(
+      {super.key, required this.msg, required this.messagePref});
   final MessageV2 msg;
+  final MessagePref messagePref;
   @override
   State<MessageWidget> createState() => _MyWidgetState();
 }
@@ -28,7 +31,7 @@ class _MyWidgetState extends State<MessageWidget> {
               margin: _getBoxMargin(msg),
               padding: _getBoxPadding(msg),
               decoration: BoxDecoration(
-                color: _getBoxColor(msg),
+                color: _getBoxColor(msg, widget.messagePref),
                 borderRadius: BorderRadius.circular(8.0),
                 // boxShadow: _getBoxShadow(msg),
               ),
@@ -57,23 +60,35 @@ class _MyWidgetState extends State<MessageWidget> {
                     children: [
                       _buildMessageWidget(msg),
                       Visibility(
-                          visible: msg.messageType != MessageType.DATE,
-                          child: Container(
-                            padding: const EdgeInsets.only(top: 5),
-                            child: Text(
-                              DateTimeUtils.getTimeByTimezone(
-                                  msg.timestamp, DateTimeUtils.hourMinute),
-                              style: TextStyle(
-                                  color: msg.messageType == MessageType.STICKER
-                                      ? Colors.black
-                                      : Colors.white),
+                        visible: msg.messageType != MessageType.DATE,
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Text(
+                            DateTimeUtils.getTimeByTimezone(
+                                msg.timestamp, DateTimeUtils.hourMinute),
+                            style: TextStyle(
+                              fontSize:
+                                  widget.messagePref.messageTimeSize.toDouble(),
+                              color: _getTimeColor(msg, widget.messagePref),
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                     ],
                   ))),
         ),
       ],
     );
+  }
+
+  Color _getTimeColor(MessageV2 msg, MessagePref pref) {
+    if (msg.messageType == MessageType.DATE) {
+      return pref.senderTimeColor;
+    } else if (msg.isMe!) {
+      return widget.messagePref.senderTimeColor;
+    } else {
+      return widget.messagePref.receiverTimeColor;
+    }
   }
 
   _getAlignment(MessageV2 msg) {
@@ -89,7 +104,12 @@ class _MyWidgetState extends State<MessageWidget> {
   Widget _buildMessageWidget(MessageV2 msg) {
     if (msg.messageType == MessageType.TEXT) {
       return SelectableText.rich(TextSpan(
-        children: TextUtils.extractLinkText(msg.msg ?? ''),
+        children: TextUtils.extractLinkText(
+            msg.msg ?? '',
+            msg.isMe!
+                ? widget.messagePref.senderTextColor
+                : widget.messagePref.receiverTextColor,
+            widget.messagePref.messageTextSize),
       ));
     } else if (msg.messageType == MessageType.IMAGE) {
       return CachedNetworkImage(
@@ -135,30 +155,20 @@ class _MyWidgetState extends State<MessageWidget> {
     } else {
       return Text(
         DateTimeUtils.getDayMonthYearString(msg.timestamp),
-        style: TextStyle(color: _getDateTextColor(msg)),
+        style: TextStyle(
+            color: widget.messagePref.dateTextColor,
+            fontSize: widget.messagePref.dateTextSize.toDouble()),
       );
     }
   }
 
-  _getBoxColor(MessageV2 msg) {
+  _getBoxColor(MessageV2 msg, MessagePref pref) {
     if (msg.messageType == MessageType.DATE) {
-      return const Color.fromARGB(70, 85, 85, 85);
-    } else if (msg.messageType == MessageType.STICKER) {
-      return Colors.transparent;
+      return pref.dateBackgroundColor;
     } else if (msg.isMe!) {
-      return Colors.blue;
+      return pref.senderBackgroundColor;
     } else {
-      return const Color.fromARGB(255, 19, 206, 44);
-    }
-  }
-
-  _getDateTextColor(MessageV2 msg) {
-    if (msg.messageType == MessageType.DATE) {
-      return const Color.fromARGB(255, 245, 241, 241);
-    } else if (msg.messageType == MessageType.STICKER) {
-      return Colors.black;
-    } else {
-      return Colors.white;
+      return pref.receiverBackgroundColor;
     }
   }
 
