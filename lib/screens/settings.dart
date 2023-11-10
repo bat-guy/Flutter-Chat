@@ -295,7 +295,7 @@ class _SettingsScreen extends State<SettingsScreen> {
   }
 
   _getGradientView(
-      Pair<Color, Color> list, Function(Pair<Color, Color>) callback) {
+      Pair<Color, Color> pair, Function(Pair<Color, Color>) callback) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(
@@ -306,10 +306,10 @@ class _SettingsScreen extends State<SettingsScreen> {
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         GestureDetector(
           onTap: () => _showPicker(
-              list.first, (c) => callback.call(Pair(c, list.second))),
+              pair.first, (c) => callback.call(Pair(c, pair.second))),
           child: Container(
             decoration: BoxDecoration(
-                color: list.first,
+                color: pair.first,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(5),
                   bottomLeft: Radius.circular(5),
@@ -320,10 +320,10 @@ class _SettingsScreen extends State<SettingsScreen> {
         ),
         GestureDetector(
           onTap: () => _showPicker(
-              list.second, (c) => callback.call(Pair(list.first, c))),
+              pair.second, (c) => callback.call(Pair(pair.first, c))),
           child: Container(
             decoration: BoxDecoration(
-                color: list.second,
+                color: pair.second,
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(5),
                   bottomRight: Radius.circular(5),

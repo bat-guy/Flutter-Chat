@@ -14,7 +14,8 @@ class AppColorPref {
       this.appBarColor = Color(appBarColor);
     }
     if (appBackgroundColor != null) {
-      Pair(Color(appBackgroundColor.first ?? Colors.blue.value),
+      this.appBackgroundColor = Pair(
+          Color(appBackgroundColor.first ?? Colors.red.value),
           Color(appBackgroundColor.second ?? Colors.blue.value));
     }
   }
