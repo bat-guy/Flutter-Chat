@@ -1,13 +1,16 @@
-enum MessagePreference {
+enum MessageColorPreference {
   senderBackgroundColor,
   senderTextColor,
   receiverBackgroundColor,
   receiverTextColor,
   senderTimeColor,
   receiverTimeColor,
-  messageTextSize,
-  messageTimeSize,
   dateBackgroundColor,
   dateTextColor,
+}
+
+enum MessageSizePreference {
+  messageTextSize,
+  messageTimeSize,
   dateTextSize,
 }

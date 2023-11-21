@@ -58,51 +58,48 @@ class AppPreference {
     await prefs.setInt(_secondaryBackgroundColor, color.second.value);
   }
 
-  setMessageColorPreference(MessagePreference type, Color color) async {
+  setMessageColorPreference(MessageColorPreference type, Color color) async {
     final SharedPreferences prefs = await _prefs;
     switch (type) {
-      case MessagePreference.receiverBackgroundColor:
+      case MessageColorPreference.receiverBackgroundColor:
         prefs.setInt(_receiverBackgroundColor, color.value);
         break;
-      case MessagePreference.receiverTextColor:
+      case MessageColorPreference.receiverTextColor:
         prefs.setInt(_receiverTextColor, color.value);
         break;
-      case MessagePreference.receiverTimeColor:
+      case MessageColorPreference.receiverTimeColor:
         prefs.setInt(_receiverTimeColor, color.value);
         break;
-      case MessagePreference.senderBackgroundColor:
+      case MessageColorPreference.senderBackgroundColor:
         prefs.setInt(_senderBackgroundColor, color.value);
         break;
-      case MessagePreference.senderTextColor:
+      case MessageColorPreference.senderTextColor:
         prefs.setInt(_senderTextColor, color.value);
         break;
-      case MessagePreference.senderTimeColor:
+      case MessageColorPreference.senderTimeColor:
         prefs.setInt(_senderTimeColor, color.value);
         break;
-      case MessagePreference.dateBackgroundColor:
+      case MessageColorPreference.dateBackgroundColor:
         prefs.setInt(_dateBackgroundColor, color.value);
         break;
-      case MessagePreference.dateTextColor:
+      case MessageColorPreference.dateTextColor:
         prefs.setInt(_dateTextColor, color.value);
-        break;
-      default:
         break;
     }
   }
 
-  setMessageTimePreference(MessagePreference type, int value) async {
+  setMessageTimePreference(MessageSizePreference type, int value) async {
     final SharedPreferences prefs = await _prefs;
     switch (type) {
-      case MessagePreference.messageTextSize:
+      case MessageSizePreference.messageTextSize:
         prefs.setInt(_messageTextSize, value);
         break;
-      case MessagePreference.messageTimeSize:
+      case MessageSizePreference.messageTimeSize:
         prefs.setInt(_messageTimeSize, value);
         break;
-      case MessagePreference.dateTextSize:
+      case MessageSizePreference.dateTextSize:
         prefs.setInt(_dateTextSize, value);
         break;
-      default:
     }
   }
 }

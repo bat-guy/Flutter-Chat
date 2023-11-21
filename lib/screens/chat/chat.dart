@@ -1,8 +1,10 @@
+import 'dart:developer';
+
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
@@ -10,7 +12,6 @@ import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/preference/app_color_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
-import 'package:flutter_mac/services/utils.dart';
 
 import 'package:flutter_mac/viewmodel/chat_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -59,20 +60,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     });
     _chatViewModel.viewStateStream.listen((state) {
+      Logger.print("View State - $state");
       _viewState = state;
     });
     _chatViewModel.messageControllerStream.listen((state) {
       if (state) _messageController.clear();
     });
     _chatViewModel.messageLoaderStream.listen((isVisible) {
+      Logger.print("isVisible - $isVisible");
       if (mounted) setState(() => _messageLoaderVisible = isVisible);
     });
     _chatViewModel.newMessageStream.listen((isVisible) {
       if (mounted) setState(() => _newMessage = isVisible);
     });
-    _chatViewModel.onlineStream.listen((online) {
-      if (mounted) setState(() => _online = online);
-    });
+    // _chatViewModel.onlineStream.listen((online) {
+    //   if (mounted) setState(() => _online = online);
+    // });
 
     _chatViewModel.getMessages();
     _scrollController.addListener(_scrollListener);
@@ -87,16 +90,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         break;
       case AppLifecycleState.paused:
         _chatViewModel.setOnlineStatus(false);
-        // print('paused');
         break;
       case AppLifecycleState.detached:
-        // print('detached');
         break;
       case AppLifecycleState.inactive:
-        // print('inactive');
         break;
       case AppLifecycleState.hidden:
-        // print('hidden');
         break;
     }
   }
@@ -118,6 +117,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onWillPop: () => _onBackButtonPressed(),
         child: Scaffold(
             appBar: AppBar(
+              elevation: 0,
               backgroundColor: _colorsPref.appBarColor,
               title: Text(widget.userProfile.name),
               actions: [
@@ -167,20 +167,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         child: Stack(
                           alignment: Alignment.bottomRight,
                           children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.black12,
-                              ),
-                              child: StreamBuilder(
-                                  stream: _chatViewModel.messageStream,
-                                  builder: (context, snapshot) =>
-                                      _setListWidget(snapshot, _messagePref)),
+                            Stack(
+                              children: [
+                                Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black12,
+                                  ),
+                                  child: StreamBuilder(
+                                      stream: _chatViewModel.messageStream,
+                                      builder: (context, snapshot) =>
+                                          _setListWidget(
+                                              snapshot, _messagePref)),
+                                ),
+                                Visibility(
+                                    visible: _messageLoaderVisible,
+                                    child: const SpinKitRing(
+                                      color: Colors.red,
+                                    ))
+                              ],
                             ),
-                            const Visibility(
-                                visible: false,
-                                child: SpinKitCircle(
-                                  color: Colors.red,
-                                )),
                             Visibility(
                               visible: _newMessage,
                               child: Container(
@@ -368,7 +373,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.minScrollExtent,
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 100),
         curve: Curves.easeIn,
       );
     }

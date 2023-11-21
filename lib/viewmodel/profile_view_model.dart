@@ -5,9 +5,9 @@ import 'dart:io';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/user.dart';
+import 'package:flutter_mac/services/Image_utils.dart';
 import 'package:flutter_mac/services/database.dart';
 import 'package:flutter_mac/services/storage.dart';
-import 'package:flutter_mac/services/utils.dart';
 
 class ProfileViewModel {
   final String uid;

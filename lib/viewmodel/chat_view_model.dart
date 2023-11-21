@@ -5,10 +5,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
+import 'package:flutter_mac/services/Image_utils.dart';
 import 'package:flutter_mac/services/database.dart';
 import 'package:flutter_mac/services/storage.dart';
 import 'package:flutter_mac/services/utils.dart';
@@ -28,11 +30,13 @@ class ChatViewModel {
   late DatabaseService _dbService;
   late StorageService _storageService;
   late ImageUtils _imageUtils;
+  late StreamSubscription<List<MessageV2>> _messageStreamSubscription;
 
   UserCred userCred;
   UserProfile userProfile;
   int _count = 0;
   final _messageSet = HashSet<String>();
+  var _viewState = ViewState.viewVisible;
 
   ChatViewModel(this.userCred, this.userProfile) {
     _dbService = DatabaseService(uid: userCred.uid);
@@ -40,10 +44,10 @@ class ChatViewModel {
     _storageService = StorageService(uid: userCred.uid);
 
     _messageStreamProvidor.add(_messageList);
-    _viewStateStreamProvidor.add(ViewState.viewVisible);
+    _viewStateStreamProvidor.add(_viewState);
     _scrollStreamProvidor.add(false);
     _messageControllerStreamProvidor.add(false);
-    _messageLoaderProvidor.add(_dbService.loading);
+    _messageLoaderProvidor.add(false);
     _newMessageProvidor.add(false);
     _onlineProvidor.add(false);
   }
@@ -64,8 +68,9 @@ class ChatViewModel {
   Stream<bool> get onlineStream => _onlineProvidor.stream;
 
   getMessages() {
-    _viewStateStreamProvidor.add(ViewState.loading);
-    _dbService.messages.listen((list) {
+    _viewState = ViewState.loading;
+    _viewStateStreamProvidor.add(_viewState);
+    _messageStreamSubscription = _dbService.messages.listen((list) {
       try {
         var tempList = <MessageV2>[];
         for (var e in list) {
@@ -82,7 +87,10 @@ class ChatViewModel {
         _messageList.addAll(_parseMessageListForDate(tempList));
 
         _messageStreamProvidor.add(_messageList);
-        _viewStateStreamProvidor.add(ViewState.viewVisible);
+        if (_viewState != ViewState.viewVisible) {
+          _viewState = ViewState.viewVisible;
+          _viewStateStreamProvidor.add(ViewState.viewVisible);
+        }
         if (list.isNotEmpty && _count != 0 && !list.first.isMe!) {
           _newMessageProvidor.add(true);
         } else {
@@ -92,8 +100,8 @@ class ChatViewModel {
           if (_count == 0) _count++;
           _scrollStreamProvidor.add(true);
         }
-      } catch (e) {
-        log("$e");
+      } catch (e, s) {
+        log("getMessages() - $e \n $s");
       }
     });
   }
@@ -104,7 +112,7 @@ class ChatViewModel {
   //loading var is also added to if condition to stop the listener from calling firebase multiple times.
   getOldMessages(double pixels, double maxScrollExtent) async {
     if (pixels == maxScrollExtent && !_dbService.loading) {
-      _messageLoaderProvidor.add(_dbService.loading);
+      _messageLoaderProvidor.add(true);
       final list = await _dbService.getOldMessageListSnapshot();
       var tempList = <MessageV2>[];
       if (list != null && list.isNotEmpty) {
@@ -123,8 +131,8 @@ class ChatViewModel {
         _messageList.addAll(_parseMessageListForDate(tempList));
 
         _messageStreamProvidor.add(_messageList);
-        _messageLoaderProvidor.add(_dbService.loading);
       }
+      _messageLoaderProvidor.add(false);
     }
   }
 
@@ -155,10 +163,9 @@ class ChatViewModel {
           }
         }
       } else {
+        _messageLoaderProvidor.add(true);
         Pair<File?, ImageStatus?> imageFile = await _imageUtils.pickImage(null);
-        _viewStateStreamProvidor.add(ViewState.loading);
         if (imageFile.second != null) {
-          _viewStateStreamProvidor.add(ViewState.viewVisible);
           switch (imageFile.second) {
             case ImageStatus.IMAGE_SIZE_OVERLOAD:
               _toastStreamController.add(StringConstants.useSmallerImage);
@@ -179,14 +186,21 @@ class ChatViewModel {
               break;
           }
         } else {
-          var downloadUrl =
-              await _storageService.uploadImage(imageFile.first, null);
-          _viewStateStreamProvidor.add(ViewState.viewVisible);
+          var downloadUrl = await _storageService
+              .uploadImage(imageFile.first, null)
+              .onError((e, s) {
+            Logger.print("File upload error - $e\n$s");
+            _messageLoaderProvidor.add(false);
+            _toastStreamController
+                .add('Error uploading the image, Please try after some time');
+            return null;
+          });
           if (downloadUrl != null) {
             _dbService.sendImage(url: downloadUrl);
             _messageControllerStreamProvidor.add(true);
           }
         }
+        _messageLoaderProvidor.add(false);
       }
     }
   }
@@ -210,7 +224,7 @@ class ChatViewModel {
   }
 
   setOnlineStatus(bool online) async {
-    await _dbService.setOnlineStatus(online);
+    // await _dbService.setOnlineStatus(online);
   }
 
   void dispose() {
@@ -221,5 +235,6 @@ class ChatViewModel {
     _messageLoaderProvidor.close();
     _newMessageProvidor.close();
     _onlineProvidor.close();
+    _messageStreamSubscription.cancel();
   }
 }

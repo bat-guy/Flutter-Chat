@@ -83,14 +83,13 @@ class _SettingsScreen extends State<SettingsScreen> {
                           }),
                       const SizedBox(height: 10),
                       _getColorRow(
-                        type: 'Background Color :',
-                        colorPair: _colorsPref.appBackgroundColor,
-                        colorPairCallback: (c) => setState(() {
-                          _pref.setAppBackgroundColor(c);
-                          _getColorsPref();
-                          _valueChanged = true;
-                        }),
-                      ),
+                          type: 'Background Color :',
+                          colorPair: _colorsPref.appBackgroundColor,
+                          colorPairCallback: (c) async {
+                            await _pref.setAppBackgroundColor(c);
+                            _getColorsPref();
+                            _valueChanged = true;
+                          }),
                     ]),
                     Colors.blue),
                 _getRowContainer(
@@ -102,7 +101,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.senderTextColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.senderTextColor, c);
+                                MessageColorPreference.senderTextColor, c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -113,7 +112,8 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.senderBackgroundColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.senderBackgroundColor, c);
+                                MessageColorPreference.senderBackgroundColor,
+                                c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -124,7 +124,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.receiverTextColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.receiverTextColor, c);
+                                MessageColorPreference.receiverTextColor, c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -135,7 +135,8 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.receiverBackgroundColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.receiverBackgroundColor, c);
+                                MessageColorPreference.receiverBackgroundColor,
+                                c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -146,7 +147,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.senderTimeColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.senderTimeColor, c);
+                                MessageColorPreference.senderTimeColor, c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -157,7 +158,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.receiverTimeColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.receiverTimeColor, c);
+                                MessageColorPreference.receiverTimeColor, c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -168,7 +169,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.dateBackgroundColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.dateBackgroundColor, c);
+                                MessageColorPreference.dateBackgroundColor, c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -179,7 +180,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           color: _messagePref.dateTextColor,
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
-                                MessagePreference.dateTextColor, c);
+                                MessageColorPreference.dateTextColor, c);
                             _getColorsPref();
                             _valueChanged = true;
                           },
@@ -189,7 +190,8 @@ class _SettingsScreen extends State<SettingsScreen> {
                             'Date Text Size:', _messagePref.dateTextSize,
                             (value) {
                           _pref.setMessageTimePreference(
-                              MessagePreference.dateTextSize, value.toInt());
+                              MessageSizePreference.dateTextSize,
+                              value.toInt());
                           _getColorsPref();
                           _valueChanged = true;
                         }),
@@ -198,7 +200,8 @@ class _SettingsScreen extends State<SettingsScreen> {
                             'Message Text Size:', _messagePref.messageTextSize,
                             (value) {
                           _pref.setMessageTimePreference(
-                              MessagePreference.messageTextSize, value.toInt());
+                              MessageSizePreference.messageTextSize,
+                              value.toInt());
                           _getColorsPref();
                           _valueChanged = true;
                         }),
@@ -206,7 +209,8 @@ class _SettingsScreen extends State<SettingsScreen> {
                         _getDropDownView('Message Time Text Size:',
                             _messagePref.messageTimeSize, (value) {
                           _pref.setMessageTimePreference(
-                              MessagePreference.messageTimeSize, value.toInt());
+                              MessageSizePreference.messageTimeSize,
+                              value.toInt());
                           _getColorsPref();
                           _valueChanged = true;
                         }),
@@ -318,6 +322,11 @@ class _SettingsScreen extends State<SettingsScreen> {
             width: 50,
           ),
         ),
+        Container(
+          color: Colors.white,
+          height: 20,
+          width: 1,
+        ),
         GestureDetector(
           onTap: () => _showPicker(
               pair.second, (c) => callback.call(Pair(pair.first, c))),
@@ -374,13 +383,9 @@ class _SettingsScreen extends State<SettingsScreen> {
           Color pickerColor = color;
           return AlertDialog(
             title: const Text('Pick a color!'),
-            content: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.hardEdge,
-              child: ColorPicker(
-                pickerColor: color,
-                onColorChanged: (c) => pickerColor = c,
-              ),
+            content: ColorPicker(
+              pickerColor: color,
+              onColorChanged: (c) => pickerColor = c,
             ),
             actions: <Widget>[
               ElevatedButton(
