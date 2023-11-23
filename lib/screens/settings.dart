@@ -4,7 +4,7 @@ import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/message_preference.dart';
 import 'package:flutter_mac/models/state_enums.dart';
-import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
 import 'package:google_fonts/google_fonts.dart';

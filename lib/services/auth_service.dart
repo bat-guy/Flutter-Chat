@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/models/user.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -20,7 +20,7 @@ class AuthService {
       User? user = result.user;
       return user;
     } catch (e) {
-      print('FIrebase Auth Exception - $e');
+      Logger.print('FIrebase Auth Exception - $e');
       return null;
     }
   }
@@ -38,7 +38,7 @@ class AuthService {
       //   name: 'firebase_auth_error',
       //   parameters: <String, dynamic>{'error': e.toString(), 'error_1': s},
       // );
-      print('Firebase Auth Exception - ${s.toString()}');
+      Logger.print('Firebase Auth Exception - ${s.toString()}');
       return null;
     }
   }
@@ -47,7 +47,7 @@ class AuthService {
     try {
       return await _auth.signOut();
     } catch (e) {
-      print(e.toString());
+      Logger.print(e.toString());
       return null;
     }
   }

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
-import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/viewmodel/profile_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -31,7 +31,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _getColorsPref();
-    viewModel = ProfileViewModel(uid: widget.uid);
+    setViewModel();
+  }
+
+  void setViewModel() async {
+    final pref = await _pref.getImagePref();
+    viewModel = ProfileViewModel(uid: widget.uid, imagePref: pref);
     setProfile();
     viewModel.loadingStream.listen((e) {
       if (mounted) {

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/navigator.dart';
-import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';

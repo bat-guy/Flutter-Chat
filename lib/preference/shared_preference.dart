@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message_preference.dart';
-import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreference {
@@ -20,6 +20,15 @@ class AppPreference {
   final _dateTextSize = 'dateTextSize';
   final _messageTextSize = 'messageTextSize';
   final _messageTimeSize = 'messageTimeSize';
+  final _maxImageSize = 'maxImageSize';
+  final _maxProfileImageSize = 'maxProfileImageSize';
+
+  getImagePref() async {
+    final SharedPreferences prefs = await _prefs;
+    return ImagePreference(
+        maxImageSize: prefs.getInt(_maxImageSize),
+        maxProfileImageSize: prefs.getInt(_maxProfileImageSize));
+  }
 
   getAppColorPref() async {
     final SharedPreferences prefs = await _prefs;
@@ -45,6 +54,12 @@ class AppPreference {
       dateBackgroundColor: prefs.getInt(_dateBackgroundColor),
       dateTextColor: prefs.getInt(_dateTextColor),
     );
+  }
+
+  setImagePref(ImagePreference pref) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setInt(_maxImageSize, pref.maxImageSize);
+    await prefs.setInt(_maxProfileImageSize, pref.maxProfileImageSize);
   }
 
   setAppBarColor(Color color) async {

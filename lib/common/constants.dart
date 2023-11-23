@@ -43,6 +43,13 @@ class ChatConstants {
   static String quote = 'quote';
 }
 
+class PrefenceConstants {
+  static String maxImageSizeLabel = 'maxImageSize';
+  static String maxProfileImageSizeLabel = 'maxProfileImageSize';
+  static int maxImageSize = 250000;
+  static int maxProfileImageSize = 1000000;
+}
+
 class KeyConstants {
   static String giphyApiKey = 'jKi0717ZNdPeHV6yCCnKGSwA1lM5sTC8';
   static String samplePicture =

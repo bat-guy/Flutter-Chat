@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/common/pair.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:image/image.dart';
 import 'package:image_compression/image_compression.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,8 +18,9 @@ enum ImageStatus {
 }
 
 class ImageUtils {
-  final _imageSize = 250000;
-  final _maxImageSize = 500000;
+  ImagePreference pref;
+
+  ImageUtils({required this.pref});
 
   Future<Pair<File?, ImageStatus?>> pickImage(int? size) async {
     try {
@@ -27,7 +29,7 @@ class ImageUtils {
           source: ImageSource.gallery,
           imageQuality: Platform.isMacOS ? 5 : null);
       if (file != null) {
-        if (await file.length() > _maxImageSize) {
+        if (await file.length() > pref.maxImageSize) {
           return await compressFile(File(file.path), size);
         } else {
           return Pair(File(file.path), null);
@@ -63,7 +65,8 @@ class ImageUtils {
 
         if (result != null) {
           quality--;
-          while (await result!.length() > (size ?? _imageSize) && quality > 0) {
+          while (await result!.length() > (size ?? pref.maxImageSize) &&
+              quality > 0) {
             result = await FlutterImageCompress.compressAndGetFile(
               file.absolute.path,
               outPath,
@@ -76,7 +79,7 @@ class ImageUtils {
           Logger.print("File - ${result.path}");
           Logger.print(
               "Final file Size - ${await result.length()}, quality- $quality");
-          if (await result.length() > (size ?? _imageSize)) {
+          if (await result.length() > (size ?? pref.maxImageSize)) {
             return Pair(null, ImageStatus.IMAGE_SIZE_OVERLOAD);
           }
           return Pair(File(result.path), null);
@@ -100,7 +103,8 @@ class ImageUtils {
               filePath: imageFile.path,
             )));
         quality--;
-        while (output.sizeInBytes > (size ?? _imageSize) && quality > 0) {
+        while (
+            output.sizeInBytes > (size ?? pref.maxImageSize) && quality > 0) {
           File tmpFile = await File(outPath).create();
           tmpFile.writeAsBytesSync(output.rawBytes);
 
@@ -117,7 +121,7 @@ class ImageUtils {
         }
         Logger.print(
             "Final File size - ${output.sizeInBytes}, quality - $quality");
-        if (output.sizeInBytes > (size ?? _imageSize)) {
+        if (output.sizeInBytes > (size ?? pref.maxImageSize)) {
           return Pair(null, ImageStatus.IMAGE_SIZE_OVERLOAD);
         }
         return Pair(File.fromRawPath(output.rawBytes), null);

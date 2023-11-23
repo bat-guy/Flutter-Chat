@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
@@ -83,5 +84,25 @@ class MessagePref {
     if (dateTextSize != null) {
       this.dateTextSize = dateTextSize;
     }
+  }
+}
+
+class ImagePreference {
+  late int maxImageSize;
+  late int maxProfileImageSize;
+
+  ImagePreference({int? maxImageSize, int? maxProfileImageSize}) {
+    this.maxImageSize = maxImageSize ?? PrefenceConstants.maxImageSize;
+    this.maxProfileImageSize =
+        maxProfileImageSize ?? PrefenceConstants.maxProfileImageSize;
+  }
+
+  static ImagePreference fromMap(QueryDocumentSnapshot<Object?> e) {
+    return ImagePreference(
+      maxImageSize: e.get(PrefenceConstants.maxImageSizeLabel) ??
+          PrefenceConstants.maxImageSize,
+      maxProfileImageSize: e.get(PrefenceConstants.maxProfileImageSizeLabel) ??
+          PrefenceConstants.maxProfileImageSize,
+    );
   }
 }

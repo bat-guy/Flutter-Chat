@@ -9,7 +9,7 @@ import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
-import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
 
@@ -50,9 +50,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _getColorsPref();
     _viewState = ViewState.loading;
     _scrollController = ScrollController();
-    _chatViewModel = ChatViewModel(widget.userCred, widget.userProfile);
+    setViewModel();
     _focus.addListener(_onFocusChange);
+  }
 
+  void setViewModel() async {
+    final pref = await _pref.getImagePref();
+    _chatViewModel = ChatViewModel(widget.userCred, widget.userProfile, pref);
     _chatViewModel.init();
     _chatViewModel.scrollStream.listen((event) {
       if (event) {

@@ -12,4 +12,8 @@ class DashboardViewModel {
   Future<List<UserProfile>> getUserList() async {
     return await _dbService.getUserList(_user.uid);
   }
+
+  getPreference() async {
+    return await _dbService.getPreference();
+  }
 }

@@ -10,6 +10,7 @@ import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/services/Image_utils.dart';
 import 'package:flutter_mac/services/database.dart';
 import 'package:flutter_mac/services/storage.dart';
@@ -38,9 +39,9 @@ class ChatViewModel {
   final _messageSet = HashSet<String>();
   var _viewState = ViewState.viewVisible;
 
-  ChatViewModel(this.userCred, this.userProfile) {
+  ChatViewModel(this.userCred, this.userProfile, ImagePreference imagePref) {
     _dbService = DatabaseService(uid: userCred.uid);
-    _imageUtils = ImageUtils();
+    _imageUtils = ImageUtils(pref: imagePref);
     _storageService = StorageService(uid: userCred.uid);
 
     _messageStreamProvidor.add(_messageList);

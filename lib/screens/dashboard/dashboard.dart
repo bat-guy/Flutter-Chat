@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
-import 'package:flutter_mac/preference/app_color_preference.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/services/auth_service.dart';
 import 'package:flutter_mac/viewmodel/dashboard_view_model.dart';
@@ -33,6 +33,7 @@ class DashboardState extends State<Dashboard> {
   _getColorsPref() async {
     var a = await _pref.getAppColorPref();
     setState(() => _colorsPref = a);
+    _pref.setImagePref(await _viewModel.getPreference());
   }
 
   @override

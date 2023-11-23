@@ -3,6 +3,7 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
+import 'package:flutter_mac/preference/app_preference.dart';
 
 class DatabaseService {
   final String uid;
@@ -12,6 +13,8 @@ class DatabaseService {
       FirebaseFirestore.instance.collection('messages-list');
   final CollectionReference _userCollection =
       FirebaseFirestore.instance.collection('users');
+  final CollectionReference _preferenceCollection =
+      FirebaseFirestore.instance.collection('preference');
   DocumentSnapshot? _lastDoc;
   var loading = false;
   final _messageLimit = 30;
@@ -161,5 +164,18 @@ class DatabaseService {
       }
     }
     return list;
+  }
+
+  getPreference() async {
+    var data = await _preferenceCollection.get();
+    if (data.docs.isNotEmpty) {
+      return ImagePreference.fromMap(data.docs.first);
+    } else {
+      await _preferenceCollection.add({
+        PrefenceConstants.maxImageSizeLabel: 250000,
+        PrefenceConstants.maxProfileImageSizeLabel: 500000,
+      });
+      return ImagePreference();
+    }
   }
 }
