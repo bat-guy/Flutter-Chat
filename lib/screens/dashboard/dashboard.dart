@@ -59,6 +59,7 @@ class DashboardState extends State<Dashboard> {
           IconButton.filled(
               onPressed: () {
                 widget._auth.signOut();
+                _pref.clearPreference();
               },
               icon: const Icon(Icons.logout)),
         ],

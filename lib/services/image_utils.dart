@@ -4,7 +4,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
-import 'package:image/image.dart';
 import 'package:image_compression/image_compression.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';

@@ -60,3 +60,16 @@ class KeyConstants {
 class AppColors {
   static Color appRed = const Color.fromARGB(255, 211, 21, 7);
 }
+
+class AssetsConstants {
+  static String dot = 'assets/images/dot.png';
+  static List soundArray = [
+    'audio/notification_1.mp3',
+    'audio/notification_2.mp3',
+    'audio/notification_3.mp3',
+    'audio/notification_4.mp3',
+    'audio/notification_5.mp3',
+    'audio/notification_6.mp3',
+    'audio/notification_7.mp3'
+  ];
+}

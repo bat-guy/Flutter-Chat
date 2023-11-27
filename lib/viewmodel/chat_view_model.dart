@@ -3,6 +3,8 @@ import 'dart:collection';
 import 'dart:developer';
 import 'dart:io';
 
+// import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/logger.dart';
@@ -24,6 +26,7 @@ class ChatViewModel {
   final _scrollStreamProvidor = StreamController<bool>();
   final _messageLoaderProvidor = StreamController<bool>();
   final _toastStreamController = StreamController<String>();
+  final _audioPlayer = AudioPlayer();
 
   final _newMessageProvidor = StreamController<bool>();
   final _onlineProvidor = StreamController<bool>();
@@ -39,7 +42,10 @@ class ChatViewModel {
   final _messageSet = HashSet<String>();
   var _viewState = ViewState.viewVisible;
 
-  ChatViewModel(this.userCred, this.userProfile, ImagePreference imagePref) {
+  final String _soundPref;
+
+  ChatViewModel(this.userCred, this.userProfile, ImagePreference imagePref,
+      this._soundPref) {
     _dbService = DatabaseService(uid: userCred.uid);
     _imageUtils = ImageUtils(pref: imagePref);
     _storageService = StorageService(uid: userCred.uid);
@@ -71,7 +77,7 @@ class ChatViewModel {
   getMessages() {
     _viewState = ViewState.loading;
     _viewStateStreamProvidor.add(_viewState);
-    _messageStreamSubscription = _dbService.messages.listen((list) {
+    _messageStreamSubscription = _dbService.messages.listen((list) async {
       try {
         var tempList = <MessageV2>[];
         for (var e in list) {
@@ -94,6 +100,8 @@ class ChatViewModel {
         }
         if (list.isNotEmpty && _count != 0 && !list.first.isMe!) {
           _newMessageProvidor.add(true);
+          await _audioPlayer.stop();
+          await _audioPlayer.play(AssetSource(_soundPref));
         } else {
           _newMessageProvidor.add(false);
         }

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -55,8 +53,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void setViewModel() async {
-    final pref = await _pref.getImagePref();
-    _chatViewModel = ChatViewModel(widget.userCred, widget.userProfile, pref);
+    final imagePref = await _pref.getImagePref();
+    final soundPref = await _pref.getMessageSound();
+    _chatViewModel = ChatViewModel(
+        widget.userCred, widget.userProfile, imagePref, soundPref);
     _chatViewModel.init();
     _chatViewModel.scrollStream.listen((event) {
       if (event) {
@@ -126,7 +126,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               title: Text(widget.userProfile.name),
               actions: [
                 Image(
-                  image: const AssetImage('assets/images/dot.png'),
+                  image: AssetImage(AssetsConstants.dot),
                   color: _online
                       ? Colors.green
                       : const Color.fromARGB(255, 232, 98, 88),

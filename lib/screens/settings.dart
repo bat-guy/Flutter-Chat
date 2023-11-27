@@ -1,5 +1,8 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/message_preference.dart';
@@ -19,26 +22,37 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreen extends State<SettingsScreen> {
   final _pref = AppPreference();
   var _valueChanged = false;
-  final _fontSizeList = <int>[];
+  final _fontSizeList = <Pair<String, int>>[];
+  final _messageSoundList = <Pair<String, String>>[];
+  final _audioPlayer = AudioPlayer();
 
   AppColorPref _colorsPref = AppColorPref();
   MessagePref _messagePref = MessagePref();
+  var _messageSound;
 
   @override
   void initState() {
     super.initState();
-    _getColorsPref();
+    _getPref();
+
     for (var i = 10; i <= 30; i++) {
-      _fontSizeList.add(i);
+      _fontSizeList.add(Pair(i.toString(), i));
+    }
+    for (var i = 0; i < AssetsConstants.soundArray.length; i++) {
+      _messageSoundList
+          .add(Pair('Sound ${i + 1}', AssetsConstants.soundArray[i]));
     }
   }
 
-  _getColorsPref() async {
+  _getPref() async {
     var a = await _pref.getAppColorPref();
     var b = await _pref.getMessagePref();
+    var c = await _pref.getMessageSound();
     setState(() {
       _colorsPref = a;
       _messagePref = b;
+      _messageSound = c;
+      Logger.print('Message Sound - $c');
     });
   }
 
@@ -72,13 +86,24 @@ class _SettingsScreen extends State<SettingsScreen> {
             child: Column(
               children: [
                 _getRowContainer(
+                    _getDropDownView(
+                        'Message Sound', _messageSound, _messageSoundList,
+                        (e) async {
+                      await _audioPlayer.stop();
+                      await _audioPlayer.play(AssetSource(e));
+                      await _pref.setMessageSound(e);
+                      _getPref();
+                      _valueChanged = true;
+                    }),
+                    Colors.teal),
+                _getRowContainer(
                     Column(children: [
                       _getColorRow(
                           type: 'AppBar Color :',
                           color: _colorsPref.appBarColor,
                           singleColorCallback: (c) {
                             _pref.setAppBarColor(c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           }),
                       const SizedBox(height: 10),
@@ -87,7 +112,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           colorPair: _colorsPref.appBackgroundColor,
                           colorPairCallback: (c) async {
                             await _pref.setAppBackgroundColor(c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           }),
                     ]),
@@ -102,7 +127,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.senderTextColor, c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -114,7 +139,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.senderBackgroundColor,
                                 c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -125,7 +150,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.receiverTextColor, c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -137,7 +162,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.receiverBackgroundColor,
                                 c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -148,7 +173,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.senderTimeColor, c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -159,7 +184,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.receiverTimeColor, c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -170,7 +195,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.dateBackgroundColor, c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
@@ -181,37 +206,39 @@ class _SettingsScreen extends State<SettingsScreen> {
                           singleColorCallback: (c) {
                             _pref.setMessageColorPreference(
                                 MessageColorPreference.dateTextColor, c);
-                            _getColorsPref();
+                            _getPref();
                             _valueChanged = true;
                           },
                         ),
                         const SizedBox(height: 5),
-                        _getDropDownView(
-                            'Date Text Size:', _messagePref.dateTextSize,
-                            (value) {
+                        _getDropDownView('Date Text Size:',
+                            _messagePref.dateTextSize, _fontSizeList, (value) {
                           _pref.setMessageTimePreference(
                               MessageSizePreference.dateTextSize,
-                              value.toInt());
-                          _getColorsPref();
+                              (value as Pair<String, int>).second.toInt());
+                          _getPref();
                           _valueChanged = true;
                         }),
                         const SizedBox(height: 5),
                         _getDropDownView(
-                            'Message Text Size:', _messagePref.messageTextSize,
-                            (value) {
+                            'Message Text Size:',
+                            _messagePref.messageTextSize,
+                            _fontSizeList, (value) {
                           _pref.setMessageTimePreference(
                               MessageSizePreference.messageTextSize,
-                              value.toInt());
-                          _getColorsPref();
+                              (value as Pair<String, int>).second.toInt());
+                          _getPref();
                           _valueChanged = true;
                         }),
                         const SizedBox(height: 5),
-                        _getDropDownView('Message Time Text Size:',
-                            _messagePref.messageTimeSize, (value) {
+                        _getDropDownView(
+                            'Message Time Text Size:',
+                            _messagePref.messageTimeSize,
+                            _fontSizeList, (value) {
                           _pref.setMessageTimePreference(
                               MessageSizePreference.messageTimeSize,
-                              value.toInt());
-                          _getColorsPref();
+                              (value as Pair<String, int>).second.toInt());
+                          _getPref();
                           _valueChanged = true;
                         }),
                         MessageWidget(
@@ -345,7 +372,8 @@ class _SettingsScreen extends State<SettingsScreen> {
     );
   }
 
-  _getDropDownView(String label, int value, Function(int) callback) {
+  _getDropDownView<T>(String label, T value, List<Pair<String, T>> itemList,
+      Function(T) callback) {
     return Row(children: [
       Text(
         label,
@@ -361,13 +389,13 @@ class _SettingsScreen extends State<SettingsScreen> {
           decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(5)),
               color: Colors.white),
-          child: DropdownButton<int>(
+          child: DropdownButton<T>(
               value: value,
               underline: const SizedBox(),
-              items: _fontSizeList
+              items: itemList
                   .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(e.toString()),
+                        value: e.second,
+                        child: Text(e.first.toString()),
                       ))
                   .toList(),
               onChanged: (value) {

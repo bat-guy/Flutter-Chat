@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message_preference.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
@@ -22,6 +23,7 @@ class AppPreference {
   final _messageTimeSize = 'messageTimeSize';
   final _maxImageSize = 'maxImageSize';
   final _maxProfileImageSize = 'maxProfileImageSize';
+  final _messageSound = 'messageSound';
 
   getImagePref() async {
     final SharedPreferences prefs = await _prefs;
@@ -37,6 +39,11 @@ class AppPreference {
       appBackgroundColor: Pair(prefs.getInt(_primaryBackgroundColor),
           prefs.getInt(_secondaryBackgroundColor)),
     );
+  }
+
+  getMessageSound() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getString(_messageSound) ?? AssetsConstants.soundArray[0];
   }
 
   getMessagePref() async {
@@ -71,6 +78,11 @@ class AppPreference {
     final SharedPreferences prefs = await _prefs;
     await prefs.setInt(_primaryBackgroundColor, color.first.value);
     await prefs.setInt(_secondaryBackgroundColor, color.second.value);
+  }
+
+  setMessageSound(String path) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setString(_messageSound, path);
   }
 
   setMessageColorPreference(MessageColorPreference type, Color color) async {
@@ -116,5 +128,10 @@ class AppPreference {
         prefs.setInt(_dateTextSize, value);
         break;
     }
+  }
+
+  clearPreference() async {
+    final SharedPreferences prefs = await _prefs;
+    prefs.clear();
   }
 }

@@ -37,7 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void setViewModel() async {
     final pref = await _pref.getImagePref();
     viewModel = ProfileViewModel(uid: widget.uid, imagePref: pref);
-    setProfile();
     viewModel.loadingStream.listen((e) {
       if (mounted) {
         setState(() => _loading = e);
@@ -62,6 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
     });
+    setProfile();
   }
 
   @override
