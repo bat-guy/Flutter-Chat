@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mac/common/pair.dart';
 
 const textInputDeclaration = InputDecoration(
     hintText: 'Password',
@@ -63,13 +64,13 @@ class AppColors {
 
 class AssetsConstants {
   static String dot = 'assets/images/dot.png';
-  static List soundArray = [
-    'audio/notification_1.mp3',
-    'audio/notification_2.mp3',
-    'audio/notification_3.mp3',
-    'audio/notification_4.mp3',
-    'audio/notification_5.mp3',
-    'audio/notification_6.mp3',
-    'audio/notification_7.mp3'
+  static List<Pair<String, String>> soundArray = [
+    Pair('Sound 1', 'audio/notification_1.mp3'),
+    Pair('Sound 2', 'audio/notification_2.mp3'),
+    Pair('Sound 3', 'audio/notification_3.mp3'),
+    Pair('Sound 4', 'audio/notification_4.mp3'),
+    Pair('Sound 5', 'audio/notification_5.mp3'),
+    Pair('Sound 6', 'audio/notification_6.mp3'),
+    Pair('Sound 7', 'audio/notification_7.mp3')
   ];
 }

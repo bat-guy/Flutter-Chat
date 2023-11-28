@@ -172,6 +172,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           alignment: Alignment.bottomRight,
                           children: [
                             Stack(
+                              alignment: Alignment.topCenter,
                               children: [
                                 Container(
                                   decoration: const BoxDecoration(
@@ -184,10 +185,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                               snapshot, _messagePref)),
                                 ),
                                 Visibility(
-                                    visible: _messageLoaderVisible,
+                                  visible: _messageLoaderVisible,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(7),
+                                    height: 50,
+                                    width: 50,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                    ),
                                     child: const SpinKitRing(
                                       color: Colors.red,
-                                    ))
+                                    ),
+                                  ),
+                                )
                               ],
                             ),
                             Visibility(
@@ -229,7 +241,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                     labelText: StringConstants.typeMessage,
                                     floatingLabelBehavior:
                                         FloatingLabelBehavior.never),
-                                textInputAction: TextInputAction.done,
+                                textInputAction: TextInputAction.go,
                                 onSubmitted: (value) =>
                                     _chatViewModel.sendMessage(
                                         _messageController.text.trim()),

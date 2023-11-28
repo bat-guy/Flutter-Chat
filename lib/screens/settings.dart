@@ -23,7 +23,6 @@ class _SettingsScreen extends State<SettingsScreen> {
   final _pref = AppPreference();
   var _valueChanged = false;
   final _fontSizeList = <Pair<String, int>>[];
-  final _messageSoundList = <Pair<String, String>>[];
   final _audioPlayer = AudioPlayer();
 
   AppColorPref _colorsPref = AppColorPref();
@@ -37,10 +36,6 @@ class _SettingsScreen extends State<SettingsScreen> {
 
     for (var i = 10; i <= 30; i++) {
       _fontSizeList.add(Pair(i.toString(), i));
-    }
-    for (var i = 0; i < AssetsConstants.soundArray.length; i++) {
-      _messageSoundList
-          .add(Pair('Sound ${i + 1}', AssetsConstants.soundArray[i]));
     }
   }
 
@@ -86,9 +81,8 @@ class _SettingsScreen extends State<SettingsScreen> {
             child: Column(
               children: [
                 _getRowContainer(
-                    _getDropDownView(
-                        'Message Sound', _messageSound, _messageSoundList,
-                        (e) async {
+                    _getDropDownView('Message Sound: ', _messageSound,
+                        AssetsConstants.soundArray, (e) async {
                       await _audioPlayer.stop();
                       await _audioPlayer.play(AssetSource(e));
                       await _pref.setMessageSound(e);
@@ -411,6 +405,7 @@ class _SettingsScreen extends State<SettingsScreen> {
           Color pickerColor = color;
           return AlertDialog(
             title: const Text('Pick a color!'),
+            backgroundColor: const Color.fromARGB(255, 238, 236, 236),
             content: ColorPicker(
               pickerColor: color,
               onColorChanged: (c) => pickerColor = c,

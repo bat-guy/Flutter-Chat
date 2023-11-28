@@ -41,9 +41,10 @@ class AppPreference {
     );
   }
 
-  getMessageSound() async {
+  Future<String> getMessageSound() async {
     final SharedPreferences prefs = await _prefs;
-    return prefs.getString(_messageSound) ?? AssetsConstants.soundArray[0];
+    return prefs.getString(_messageSound) ??
+        AssetsConstants.soundArray[0].second;
   }
 
   getMessagePref() async {

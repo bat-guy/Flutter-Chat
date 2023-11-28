@@ -30,13 +30,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _getColorsPref();
     setViewModel();
+    _getColorsPref();
   }
 
-  void setViewModel() async {
-    final pref = await _pref.getImagePref();
-    viewModel = ProfileViewModel(uid: widget.uid, imagePref: pref);
+  void setViewModel() {
+    viewModel = ProfileViewModel(uid: widget.uid, pref: _pref);
     viewModel.loadingStream.listen((e) {
       if (mounted) {
         setState(() => _loading = e);
@@ -93,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         child: FutureBuilder(
-            future: profile,
+            future: viewModel.getProfile(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.hasError) {

@@ -6,26 +6,31 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
+import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/services/Image_utils.dart';
 import 'package:flutter_mac/services/database.dart';
 import 'package:flutter_mac/services/storage.dart';
 
 class ProfileViewModel {
   final String uid;
-
   late final DatabaseService _dbService;
   late final StorageService _storageService;
   late UserProfile profile;
   late final ImageUtils _imageUtils;
-  late final ImagePreference imagePref;
+  late final ImagePreference _imagePref;
   final _loadingStreamController = StreamController<bool>();
   final _toastStreamController = StreamController<String>();
 
-  ProfileViewModel({required this.uid, required this.imagePref}) {
+  ProfileViewModel({required this.uid, required AppPreference pref}) {
     _dbService = DatabaseService(uid: uid);
     _storageService = StorageService(uid: uid);
     _loadingStreamController.add(false);
-    _imageUtils = ImageUtils(pref: imagePref);
+    setImageUtils(pref);
+  }
+
+  Future<void> setImageUtils(AppPreference pref) async {
+    _imagePref = await pref.getImagePref();
+    _imageUtils = ImageUtils(pref: await pref.getImagePref());
   }
 
   Future<UserProfile> getProfile() async {
@@ -36,7 +41,7 @@ class ProfileViewModel {
   updateProfilePicture() async {
     _loadingStreamController.add(true);
     Pair<File?, ImageStatus?> imageFile =
-        await _imageUtils.pickImage(imagePref.maxProfileImageSize);
+        await _imageUtils.pickImage(_imagePref.maxProfileImageSize);
 
     if (imageFile.second != null) {
       switch (imageFile.second) {
