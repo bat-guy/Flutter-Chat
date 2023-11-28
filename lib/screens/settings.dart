@@ -208,8 +208,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                         _getDropDownView('Date Text Size:',
                             _messagePref.dateTextSize, _fontSizeList, (value) {
                           _pref.setMessageTimePreference(
-                              MessageSizePreference.dateTextSize,
-                              (value as Pair<String, int>).second.toInt());
+                              MessageSizePreference.dateTextSize, value);
                           _getPref();
                           _valueChanged = true;
                         }),
@@ -219,8 +218,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                             _messagePref.messageTextSize,
                             _fontSizeList, (value) {
                           _pref.setMessageTimePreference(
-                              MessageSizePreference.messageTextSize,
-                              (value as Pair<String, int>).second.toInt());
+                              MessageSizePreference.messageTextSize, value);
                           _getPref();
                           _valueChanged = true;
                         }),
@@ -230,8 +228,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                             _messagePref.messageTimeSize,
                             _fontSizeList, (value) {
                           _pref.setMessageTimePreference(
-                              MessageSizePreference.messageTimeSize,
-                              (value as Pair<String, int>).second.toInt());
+                              MessageSizePreference.messageTimeSize, value);
                           _getPref();
                           _valueChanged = true;
                         }),
