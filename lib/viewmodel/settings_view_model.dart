@@ -40,4 +40,11 @@ class SettingsViewModel {
     await _pref.setMessageSound(soundPref);
     _loading.add(false);
   }
+
+  dispose() {
+    _loading.close();
+    _appColorPref.close();
+    _messagePref.close();
+    _messageSound.close();
+  }
 }

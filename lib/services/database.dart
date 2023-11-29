@@ -246,7 +246,7 @@ class DatabaseService {
       PrefenceConstants.appBarColor: appColorPref.appBarColor.value,
       PrefenceConstants.primaryBackgroundColor:
           appColorPref.appBackgroundColor.first.value,
-      PrefenceConstants.primaryBackgroundColor:
+      PrefenceConstants.secondaryBackgroundColor:
           appColorPref.appBackgroundColor.second.value,
       PrefenceConstants.messageSound: soundPref
     });

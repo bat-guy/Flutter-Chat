@@ -32,12 +32,20 @@ class DashboardViewModel {
   }
 
   _refreshUserPref() async {
-    final prefData = await _dbService.getUserPreference();
+    final AppPreferenceWrapper? prefData = await _dbService.getUserPreference();
     if (prefData == null) {
       final appColorPref = await _pref.getAppColorPref();
       final msgPref = await _pref.getMessagePref();
       final messageSoundPref = await _pref.getMessageSound();
       await _dbService.setPreference(msgPref, appColorPref, messageSoundPref);
+    } else {
+      await _pref.setMessageColorPreferenceV2(prefData.msgPref);
+      await _pref.setMessageTimePreferenceV2(prefData.msgPref);
+      await _pref.setAppBarColor(prefData.appColorPref.appBarColor);
+      await _pref
+          .setAppBackgroundColor(prefData.appColorPref.appBackgroundColor);
+      await _pref.setMessageSound(prefData.messageSoundPref);
+      _setPreference();
     }
   }
 
@@ -47,5 +55,9 @@ class DashboardViewModel {
 
   void refresh() {
     _setPreference();
+  }
+
+  void dispose() {
+    _appColoPrefStream.close();
   }
 }

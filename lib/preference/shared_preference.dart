@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
-import 'package:flutter_mac/models/message_preference.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -84,51 +83,6 @@ class AppPreference {
   setMessageSound(String path) async {
     final SharedPreferences prefs = await _prefs;
     await prefs.setString(_messageSound, path);
-  }
-
-  setMessageColorPreference(MessageColorPreference type, Color color) async {
-    final SharedPreferences prefs = await _prefs;
-    switch (type) {
-      case MessageColorPreference.receiverBackgroundColor:
-        prefs.setInt(_receiverBackgroundColor, color.value);
-        break;
-      case MessageColorPreference.receiverTextColor:
-        prefs.setInt(_receiverTextColor, color.value);
-        break;
-      case MessageColorPreference.receiverTimeColor:
-        prefs.setInt(_receiverTimeColor, color.value);
-        break;
-      case MessageColorPreference.senderBackgroundColor:
-        prefs.setInt(_senderBackgroundColor, color.value);
-        break;
-      case MessageColorPreference.senderTextColor:
-        prefs.setInt(_senderTextColor, color.value);
-        break;
-      case MessageColorPreference.senderTimeColor:
-        prefs.setInt(_senderTimeColor, color.value);
-        break;
-      case MessageColorPreference.dateBackgroundColor:
-        prefs.setInt(_dateBackgroundColor, color.value);
-        break;
-      case MessageColorPreference.dateTextColor:
-        prefs.setInt(_dateTextColor, color.value);
-        break;
-    }
-  }
-
-  setMessageTimePreference(MessageSizePreference type, int value) async {
-    final SharedPreferences prefs = await _prefs;
-    switch (type) {
-      case MessageSizePreference.messageTextSize:
-        prefs.setInt(_messageTextSize, value);
-        break;
-      case MessageSizePreference.messageTimeSize:
-        prefs.setInt(_messageTimeSize, value);
-        break;
-      case MessageSizePreference.dateTextSize:
-        prefs.setInt(_dateTextSize, value);
-        break;
-    }
   }
 
   setMessageColorPreferenceV2(MessagePref msgPref) async {

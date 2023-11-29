@@ -47,6 +47,12 @@ class _SettingsScreen extends State<SettingsScreen> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _viewModel.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {

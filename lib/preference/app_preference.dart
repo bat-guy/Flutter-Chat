@@ -5,10 +5,13 @@ import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/extensions.dart';
 
 class AppPreferenceWrapper {
+  AppColorPref appColorPref;
+  MessagePref msgPref;
+  String messageSoundPref;
   AppPreferenceWrapper(
-      {required AppColorPref appColorPref,
-      required MessagePref msgPref,
-      required String messageSoundPref});
+      {required this.appColorPref,
+      required this.msgPref,
+      required this.messageSoundPref});
 }
 
 class AppColorPref {

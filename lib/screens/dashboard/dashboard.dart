@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
-import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/services/auth_service.dart';
 import 'package:flutter_mac/viewmodel/dashboard_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -27,6 +26,12 @@ class DashboardState extends State<Dashboard> {
     super.initState();
     _viewModel = DashboardViewModel(widget.userCred);
     _getColorsPref();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _viewModel.dispose();
   }
 
   _getColorsPref() async {
