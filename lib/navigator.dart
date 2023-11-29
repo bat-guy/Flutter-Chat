@@ -22,9 +22,9 @@ class ScreenNavigator {
     _push(context, ImagePreview(imageUrl: imageUrl));
   }
 
-  static openSettingsPage(BuildContext context) {
+  static openSettingsPage(String uid, BuildContext context) {
     return Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const SettingsScreen()));
+        MaterialPageRoute(builder: (context) => SettingsScreen(uid: uid)));
   }
 
   static _push(BuildContext context, Widget widget) {

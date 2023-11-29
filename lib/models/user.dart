@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/extensions.dart';
 
 class UserCred {
   final String uid;
@@ -23,14 +24,8 @@ class UserProfile {
     Map<String, dynamic>? map = e.data() as Map<String, dynamic>?;
     return UserProfile(
         uid: map![ChatConstants.uid],
-        name: map.containsKey(ChatConstants.name)
-            ? map[ChatConstants.name]
-            : 'John Doe',
-        profilePicture: map.containsKey(ChatConstants.profilePicture)
-            ? map[ChatConstants.profilePicture]
-            : '',
-        quote: map.containsKey(ChatConstants.quote)
-            ? map[ChatConstants.quote]
-            : 'Some Quote Here');
+        name: map.valueOrNull(ChatConstants.name) ?? 'John Doe',
+        profilePicture: map.valueOrNull(ChatConstants.profilePicture) ?? '',
+        quote: map.valueOrNull(ChatConstants.quote) ?? 'Some Quote Here');
   }
 }

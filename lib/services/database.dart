@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/common/pair.dart';
+import 'package:flutter_mac/extensions.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
@@ -166,7 +168,7 @@ class DatabaseService {
     return list;
   }
 
-  getPreference() async {
+  getImagePreference() async {
     var data = await _preferenceCollection.get();
     if (data.docs.isNotEmpty) {
       return ImagePreference.fromMap(data.docs.first);
@@ -176,6 +178,83 @@ class DatabaseService {
         PrefenceConstants.maxProfileImageSizeLabel: 500000,
       });
       return ImagePreference();
+    }
+  }
+
+  getUserPreference() async {
+    var collection = await _userCollection.doc(uid).get();
+    final d = collection.data() as Map<String, dynamic>?;
+    final AppColorPref appColorPref;
+    final MessagePref msgPref;
+    final String msgSoundPref;
+
+    if (d!.containsKey(PrefenceConstants.preference)) {
+      final Map<String, dynamic>? data =
+          d.valueOrNull(PrefenceConstants.preference);
+      msgPref = MessagePref(
+        messageTextSize: data!.valueOrNull(PrefenceConstants.messageTextSize),
+        messageTimeSize: data.valueOrNull(PrefenceConstants.messageTimeSize),
+        dateTextSize: data.valueOrNull(PrefenceConstants.dateTextSize),
+        dateBackgroundColor:
+            data.valueOrNull(PrefenceConstants.dateBackgroundColor),
+        dateTextColor: data.valueOrNull(PrefenceConstants.dateTextColor),
+        senderBackgroundColor:
+            data.valueOrNull(PrefenceConstants.senderBackgroundColor),
+        receiverBackgroundColor:
+            data.valueOrNull(PrefenceConstants.receiverBackgroundColor),
+        senderTextColor: data.valueOrNull(PrefenceConstants.senderTextColor),
+        receiverTextColor:
+            data.valueOrNull(PrefenceConstants.receiverTextColor),
+        senderTimeColor: data.valueOrNull(PrefenceConstants.senderTimeColor),
+        receiverTimeColor:
+            data.valueOrNull(PrefenceConstants.receiverTimeColor),
+      );
+      appColorPref = AppColorPref(
+        appBarColor: data.valueOrNull(PrefenceConstants.appBarColor),
+        appBackgroundColor: Pair(
+            data.valueOrNull(PrefenceConstants.primaryBackgroundColor),
+            data.valueOrNull(PrefenceConstants.secondaryBackgroundColor)),
+      );
+      msgSoundPref = data.valueOrNull(PrefenceConstants.messageSound) ??
+          AssetsConstants.soundArray.first.second;
+    } else {
+      return null;
+    }
+    return AppPreferenceWrapper(
+        appColorPref: appColorPref,
+        msgPref: msgPref,
+        messageSoundPref: msgSoundPref);
+  }
+
+  setPreference(
+      MessagePref msgPref, AppColorPref appColorPref, String soundPref) async {
+    final Map<String, dynamic> map = {};
+
+    map.addAll({
+      PrefenceConstants.receiverBackgroundColor:
+          msgPref.receiverBackgroundColor.value,
+      PrefenceConstants.receiverTimeColor: msgPref.receiverTimeColor.value,
+      PrefenceConstants.senderBackgroundColor:
+          msgPref.senderBackgroundColor.value,
+      PrefenceConstants.senderTextColor: msgPref.senderTextColor.value,
+      PrefenceConstants.senderTimeColor: msgPref.senderTimeColor.value,
+      PrefenceConstants.dateBackgroundColor: msgPref.dateBackgroundColor.value,
+      PrefenceConstants.dateTextColor: msgPref.dateTextColor.value,
+      PrefenceConstants.messageTextSize: msgPref.messageTextSize,
+      PrefenceConstants.messageTimeSize: msgPref.messageTimeSize,
+      PrefenceConstants.dateTextSize: msgPref.dateTextSize,
+      PrefenceConstants.appBarColor: appColorPref.appBarColor.value,
+      PrefenceConstants.primaryBackgroundColor:
+          appColorPref.appBackgroundColor.first.value,
+      PrefenceConstants.primaryBackgroundColor:
+          appColorPref.appBackgroundColor.second.value,
+      PrefenceConstants.messageSound: soundPref
+    });
+
+    if (map.isNotEmpty) {
+      await _userCollection
+          .doc(uid)
+          .update({PrefenceConstants.preference: map});
     }
   }
 }

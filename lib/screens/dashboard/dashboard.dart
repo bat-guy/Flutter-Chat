@@ -19,7 +19,6 @@ class Dashboard extends StatefulWidget {
 }
 
 class DashboardState extends State<Dashboard> {
-  final _pref = AppPreference();
   late DashboardViewModel _viewModel;
   AppColorPref _colorsPref = AppColorPref();
 
@@ -31,9 +30,9 @@ class DashboardState extends State<Dashboard> {
   }
 
   _getColorsPref() async {
-    var a = await _pref.getAppColorPref();
-    setState(() => _colorsPref = a);
-    _pref.setImagePref(await _viewModel.getPreference());
+    _viewModel.appColoPrefStream.listen((e) {
+      setState(() => _colorsPref = e);
+    });
   }
 
   @override
@@ -50,16 +49,17 @@ class DashboardState extends State<Dashboard> {
         actions: [
           IconButton.filled(
               onPressed: () async {
-                final value = await ScreenNavigator.openSettingsPage(context);
+                final value = await ScreenNavigator.openSettingsPage(
+                    widget.userCred.uid, context);
                 if (value != null && value) {
-                  _getColorsPref();
+                  _viewModel.refresh();
                 }
               },
               icon: const Icon(Icons.settings)),
           IconButton.filled(
               onPressed: () {
                 widget._auth.signOut();
-                _pref.clearPreference();
+                _viewModel.signOut();
               },
               icon: const Icon(Icons.logout)),
         ],

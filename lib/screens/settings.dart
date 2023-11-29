@@ -2,53 +2,48 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_mac/common/constants.dart';
-import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
-import 'package:flutter_mac/models/message_preference.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
-import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/screens/chat/message.dart';
+import 'package:flutter_mac/viewmodel/settings_view_model.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final String uid;
+
+  const SettingsScreen({super.key, required this.uid});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreen();
 }
 
 class _SettingsScreen extends State<SettingsScreen> {
-  final _pref = AppPreference();
   var _valueChanged = false;
   final _fontSizeList = <Pair<String, int>>[];
   final _audioPlayer = AudioPlayer();
 
   AppColorPref _colorsPref = AppColorPref();
   MessagePref _messagePref = MessagePref();
+  late SettingsViewModel _viewModel;
+
   var _messageSound;
+  var _loading = false;
 
   @override
   void initState() {
     super.initState();
-    _getPref();
+    _viewModel = SettingsViewModel(widget.uid);
+    _viewModel.loading.listen((e) => setState(() => _loading = e));
+    _viewModel.appColorPref.listen((e) => setState(() => _colorsPref = e));
+    _viewModel.messagePref.listen((e) => setState(() => _messagePref = e));
+    _viewModel.messageSound.listen((e) => setState(() => _messageSound = e));
 
     for (var i = 10; i <= 30; i++) {
       _fontSizeList.add(Pair(i.toString(), i));
     }
-  }
-
-  _getPref() async {
-    var a = await _pref.getAppColorPref();
-    var b = await _pref.getMessagePref();
-    var c = await _pref.getMessageSound();
-    setState(() {
-      _colorsPref = a;
-      _messagePref = b;
-      _messageSound = c;
-      Logger.print('Message Sound - $c');
-    });
   }
 
   @override
@@ -77,191 +72,208 @@ class _SettingsScreen extends State<SettingsScreen> {
               ],
             ),
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                _getRowContainer(
-                    _getDropDownView('Message Sound: ', _messageSound,
-                        AssetsConstants.soundArray, (e) async {
-                      await _audioPlayer.stop();
-                      await _audioPlayer.play(AssetSource(e));
-                      await _pref.setMessageSound(e);
-                      _getPref();
-                      _valueChanged = true;
-                    }),
-                    Colors.teal),
-                _getRowContainer(
-                    Column(children: [
-                      _getColorRow(
-                          type: 'AppBar Color :',
-                          color: _colorsPref.appBarColor,
-                          singleColorCallback: (c) {
-                            _pref.setAppBarColor(c);
-                            _getPref();
-                            _valueChanged = true;
-                          }),
-                      const SizedBox(height: 10),
-                      _getColorRow(
-                          type: 'Background Color :',
-                          colorPair: _colorsPref.appBackgroundColor,
-                          colorPairCallback: (c) async {
-                            await _pref.setAppBackgroundColor(c);
-                            _getPref();
-                            _valueChanged = true;
-                          }),
-                    ]),
-                    Colors.blue),
-                _getRowContainer(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _getColorRow(
-                          type: 'Sender Text Color:',
-                          color: _messagePref.senderTextColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.senderTextColor, c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Sender Background Color:',
-                          color: _messagePref.senderBackgroundColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.senderBackgroundColor,
-                                c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Reciever Text Color:',
-                          color: _messagePref.receiverTextColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.receiverTextColor, c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Reciever Background Color:',
-                          color: _messagePref.receiverBackgroundColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.receiverBackgroundColor,
-                                c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Sender Time Color:',
-                          color: _messagePref.senderTimeColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.senderTimeColor, c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Receiver Time Color:',
-                          color: _messagePref.receiverTimeColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.receiverTimeColor, c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Date Background Color:',
-                          color: _messagePref.dateBackgroundColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.dateBackgroundColor, c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getColorRow(
-                          type: 'Date Text Color:',
-                          color: _messagePref.dateTextColor,
-                          singleColorCallback: (c) {
-                            _pref.setMessageColorPreference(
-                                MessageColorPreference.dateTextColor, c);
-                            _getPref();
-                            _valueChanged = true;
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        _getDropDownView('Date Text Size:',
-                            _messagePref.dateTextSize, _fontSizeList, (value) {
-                          _pref.setMessageTimePreference(
-                              MessageSizePreference.dateTextSize, value);
-                          _getPref();
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _getRowContainer(
+                        _getDropDownView('Message Sound: ', _messageSound,
+                            AssetsConstants.soundArray, (e) async {
+                          await _audioPlayer.stop();
+                          await _audioPlayer.play(AssetSource(e));
+                          setState(() => _messageSound = e);
                           _valueChanged = true;
                         }),
-                        const SizedBox(height: 5),
-                        _getDropDownView(
-                            'Message Text Size:',
-                            _messagePref.messageTextSize,
-                            _fontSizeList, (value) {
-                          _pref.setMessageTimePreference(
-                              MessageSizePreference.messageTextSize, value);
-                          _getPref();
-                          _valueChanged = true;
-                        }),
-                        const SizedBox(height: 5),
-                        _getDropDownView(
-                            'Message Time Text Size:',
-                            _messagePref.messageTimeSize,
-                            _fontSizeList, (value) {
-                          _pref.setMessageTimePreference(
-                              MessageSizePreference.messageTimeSize, value);
-                          _getPref();
-                          _valueChanged = true;
-                        }),
-                        MessageWidget(
-                          msg: MessageV2(
-                            timestamp: 1699591493533,
-                            messageType: MessageType.DATE,
-                          ),
-                          messagePref: _messagePref,
+                        Colors.teal),
+                    _getRowContainer(
+                        Column(children: [
+                          _getColorRow(
+                              type: 'AppBar Color :',
+                              color: _colorsPref.appBarColor,
+                              singleColorCallback: (c) {
+                                setState(() => _colorsPref.appBarColor = c);
+                                _valueChanged = true;
+                              }),
+                          const SizedBox(height: 10),
+                          _getColorRow(
+                              type: 'Background Color :',
+                              colorPair: _colorsPref.appBackgroundColor,
+                              colorPairCallback: (c) async {
+                                setState(
+                                    () => _colorsPref.appBackgroundColor = c);
+                                _valueChanged = true;
+                              }),
+                        ]),
+                        Colors.blue),
+                    _getRowContainer(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _getColorRow(
+                              type: 'Sender Text Color:',
+                              color: _messagePref.senderTextColor,
+                              singleColorCallback: (c) {
+                                setState(
+                                    () => _messagePref.senderTextColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Sender Background Color:',
+                              color: _messagePref.senderBackgroundColor,
+                              singleColorCallback: (c) {
+                                setState(() =>
+                                    _messagePref.senderBackgroundColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Reciever Text Color:',
+                              color: _messagePref.receiverTextColor,
+                              singleColorCallback: (c) {
+                                setState(
+                                    () => _messagePref.receiverTextColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Reciever Background Color:',
+                              color: _messagePref.receiverBackgroundColor,
+                              singleColorCallback: (c) {
+                                setState(() =>
+                                    _messagePref.receiverBackgroundColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Sender Time Color:',
+                              color: _messagePref.senderTimeColor,
+                              singleColorCallback: (c) {
+                                setState(
+                                    () => _messagePref.senderTimeColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Receiver Time Color:',
+                              color: _messagePref.receiverTimeColor,
+                              singleColorCallback: (c) {
+                                setState(
+                                    () => _messagePref.receiverTimeColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Date Background Color:',
+                              color: _messagePref.dateBackgroundColor,
+                              singleColorCallback: (c) {
+                                setState(
+                                    () => _messagePref.dateBackgroundColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getColorRow(
+                              type: 'Date Text Color:',
+                              color: _messagePref.dateTextColor,
+                              singleColorCallback: (c) {
+                                setState(() => _messagePref.dateTextColor = c);
+                                _valueChanged = true;
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                            _getDropDownView(
+                                'Date Text Size:',
+                                _messagePref.dateTextSize,
+                                _fontSizeList, (value) {
+                              setState(() => _messagePref.dateTextSize = value);
+                              _valueChanged = true;
+                            }),
+                            const SizedBox(height: 5),
+                            _getDropDownView(
+                                'Message Text Size:',
+                                _messagePref.messageTextSize,
+                                _fontSizeList, (value) {
+                              setState(
+                                  () => _messagePref.messageTextSize = value);
+                              _valueChanged = true;
+                            }),
+                            const SizedBox(height: 5),
+                            _getDropDownView(
+                                'Message Time Text Size:',
+                                _messagePref.messageTimeSize,
+                                _fontSizeList, (value) {
+                              setState(
+                                  () => _messagePref.messageTimeSize = value);
+                              _valueChanged = true;
+                            }),
+                            MessageWidget(
+                              msg: MessageV2(
+                                timestamp: 1699591493533,
+                                messageType: MessageType.DATE,
+                              ),
+                              messagePref: _messagePref,
+                            ),
+                            MessageWidget(
+                              msg: MessageV2(
+                                timestamp: 1699591493533,
+                                messageType: MessageType.TEXT,
+                                msg: 'Hello',
+                                isMe: true,
+                              ),
+                              messagePref: _messagePref,
+                            ),
+                            MessageWidget(
+                              msg: MessageV2(
+                                timestamp: 1699591493533,
+                                messageType: MessageType.TEXT,
+                                msg: 'Hello',
+                                isMe: false,
+                              ),
+                              messagePref: _messagePref,
+                            )
+                          ],
                         ),
-                        MessageWidget(
-                          msg: MessageV2(
-                            timestamp: 1699591493533,
-                            messageType: MessageType.TEXT,
-                            msg: 'Hello',
-                            isMe: true,
-                          ),
-                          messagePref: _messagePref,
-                        ),
-                        MessageWidget(
-                          msg: MessageV2(
-                            timestamp: 1699591493533,
-                            messageType: MessageType.TEXT,
-                            msg: 'Hello',
-                            isMe: false,
-                          ),
-                          messagePref: _messagePref,
-                        )
-                      ],
+                        Colors.transparent),
+                    const SizedBox(height: 80)
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => savePref(context),
+                child: Container(
+                  height: 50,
+                  width: double.maxFinite,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      color: Colors.cyan,
+                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: const BorderRadius.all(Radius.circular(5))),
+                  child: Text(
+                    'Save',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
                     ),
-                    Colors.transparent)
-              ],
-            ),
+                  ),
+                ),
+              ),
+              Visibility(
+                  visible: _loading,
+                  child: const SpinKitDualRing(
+                    color: Colors.red,
+                    size: 100,
+                  ))
+            ],
           ),
         ),
       ),
@@ -418,5 +430,12 @@ class _SettingsScreen extends State<SettingsScreen> {
             ],
           );
         });
+  }
+
+  savePref(BuildContext context) async {
+    if (_valueChanged) {
+      await _viewModel.savePreference(_messagePref, _colorsPref, _messageSound);
+      if (mounted) Navigator.pop(context, _valueChanged);
+    }
   }
 }

@@ -2,6 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
+import 'package:flutter_mac/extensions.dart';
+
+class AppPreferenceWrapper {
+  AppPreferenceWrapper(
+      {required AppColorPref appColorPref,
+      required MessagePref msgPref,
+      required String messageSoundPref});
+}
 
 class AppColorPref {
   Color appBarColor = AppColors.appRed;
@@ -19,6 +27,16 @@ class AppColorPref {
           Color(appBackgroundColor.first ?? Colors.red.value),
           Color(appBackgroundColor.second ?? Colors.blue.value));
     }
+  }
+
+  static AppColorPref fromMap(DocumentSnapshot<Object?> e) {
+    Map<String, dynamic>? map = e.data() as Map<String, dynamic>?;
+    return AppColorPref(
+      appBarColor: map!.valueOrNull(PrefenceConstants.appBarColor),
+      appBackgroundColor: Pair(
+          map.valueOrNull(PrefenceConstants.primaryBackgroundColor),
+          map.valueOrNull(PrefenceConstants.secondaryBackgroundColor)),
+    );
   }
 }
 
@@ -85,6 +103,26 @@ class MessagePref {
       this.dateTextSize = dateTextSize;
     }
   }
+
+  static MessagePref fromMap(DocumentSnapshot<Object?> e) {
+    Map<String, dynamic>? map = e.data() as Map<String, dynamic>?;
+    return MessagePref(
+      messageTextSize: map!.valueOrNull(PrefenceConstants.messageTextSize),
+      messageTimeSize: map.valueOrNull(PrefenceConstants.messageTimeSize),
+      dateTextSize: map.valueOrNull(PrefenceConstants.dateTextSize),
+      dateBackgroundColor:
+          map.valueOrNull(PrefenceConstants.dateBackgroundColor),
+      dateTextColor: map.valueOrNull(PrefenceConstants.dateTextColor),
+      senderBackgroundColor:
+          map.valueOrNull(PrefenceConstants.senderBackgroundColor),
+      receiverBackgroundColor:
+          map.valueOrNull(PrefenceConstants.receiverBackgroundColor),
+      senderTextColor: map.valueOrNull(PrefenceConstants.senderTextColor),
+      receiverTextColor: map.valueOrNull(PrefenceConstants.receiverTextColor),
+      senderTimeColor: map.valueOrNull(PrefenceConstants.senderTimeColor),
+      receiverTimeColor: map.valueOrNull(PrefenceConstants.receiverTimeColor),
+    );
+  }
 }
 
 class ImagePreference {
@@ -97,7 +135,7 @@ class ImagePreference {
         maxProfileImageSize ?? PrefenceConstants.maxProfileImageSize;
   }
 
-  static ImagePreference fromMap(QueryDocumentSnapshot<Object?> e) {
+  static ImagePreference fromMap(DocumentSnapshot<Object?> e) {
     return ImagePreference(
       maxImageSize: e.get(PrefenceConstants.maxImageSizeLabel) ??
           PrefenceConstants.maxImageSize,

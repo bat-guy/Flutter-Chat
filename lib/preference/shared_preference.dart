@@ -131,6 +131,26 @@ class AppPreference {
     }
   }
 
+  setMessageColorPreferenceV2(MessagePref msgPref) async {
+    final SharedPreferences prefs = await _prefs;
+    prefs.setInt(
+        _receiverBackgroundColor, msgPref.receiverBackgroundColor.value);
+    prefs.setInt(_receiverTextColor, msgPref.receiverTextColor.value);
+    prefs.setInt(_receiverTimeColor, msgPref.receiverTimeColor.value);
+    prefs.setInt(_senderBackgroundColor, msgPref.senderBackgroundColor.value);
+    prefs.setInt(_senderTextColor, msgPref.senderTextColor.value);
+    prefs.setInt(_senderTimeColor, msgPref.senderTimeColor.value);
+    prefs.setInt(_dateBackgroundColor, msgPref.dateBackgroundColor.value);
+    prefs.setInt(_dateTextColor, msgPref.dateTextColor.value);
+  }
+
+  setMessageTimePreferenceV2(MessagePref msgPref) async {
+    final SharedPreferences prefs = await _prefs;
+    prefs.setInt(_messageTextSize, msgPref.messageTextSize);
+    prefs.setInt(_messageTimeSize, msgPref.messageTimeSize);
+    prefs.setInt(_dateTextSize, msgPref.dateTextSize);
+  }
+
   clearPreference() async {
     final SharedPreferences prefs = await _prefs;
     prefs.clear();

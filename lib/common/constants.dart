@@ -49,6 +49,22 @@ class PrefenceConstants {
   static String maxProfileImageSizeLabel = 'maxProfileImageSize';
   static int maxImageSize = 250000;
   static int maxProfileImageSize = 1000000;
+  static String appBarColor = 'appBarColor';
+  static String primaryBackgroundColor = 'primaryBackgroundColor';
+  static String secondaryBackgroundColor = 'secondaryBackgroundColor';
+  static String messageTextSize = 'messageTextSize';
+  static String messageTimeSize = 'messageTimeSize';
+  static String dateTextSize = 'dateTextSize';
+  static String dateBackgroundColor = 'dateBackgroundColor';
+  static String dateTextColor = 'dateTextColor';
+  static String senderBackgroundColor = 'senderBackgroundColor';
+  static String receiverBackgroundColor = 'receiverBackgroundColor';
+  static String senderTextColor = 'senderTextColor';
+  static String receiverTextColor = 'receiverTextColor';
+  static String senderTimeColor = 'senderTimeColor';
+  static String receiverTimeColor = 'receiverTimeColor';
+  static String messageSound = 'messageSound';
+  static String preference = 'preference';
 }
 
 class KeyConstants {
