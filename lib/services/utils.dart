@@ -1,73 +1,88 @@
-import 'dart:io';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_mac/services/database.dart';
-import 'package:image_picker/image_picker.dart';
+class TextUtils {
+  //This method takes a raw string and gives out a List<TexSpan> that contain normal text and links.
+  static List<TextSpan> extractLinkText(
+      String rawString, Color textColor, int fontSize) {
+    List<TextSpan> textSpan = [];
 
-class ChatUtils {
-  final String uid;
-  ChatUtils({required this.uid});
+    final urlRegExp = RegExp(
+        r"((https?:www\.)|(https?:\/\/)|(www\.))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?");
 
-  final ImagePicker _picker = ImagePicker();
-  Future<String?> sendImage() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? response =
-          await picker.pickImage(source: ImageSource.gallery);
-
-      // File? file;
-      // if (response != null) {
-      //   file = await ImageUtils().compressFile(File(response.path));
-      // } else {
-      //   print('Image Picker returned null');
-      //   return;
-      // }
-      if (response != null) {
-        var snapshot = await FirebaseStorage.instance
-            .ref()
-            .child('images/${DateTime.now().millisecondsSinceEpoch.toString()}')
-            .putFile(File(response.path));
-        return await snapshot.ref.getDownloadURL();
-      } else {
-        print('File compressor returned null');
-        return null;
-      }
-    } catch (e, s) {
-      print('Failed to upload image: $s');
-      return null;
+    getLink(String linkString) {
+      textSpan.add(
+        TextSpan(
+          text: linkString,
+          style: GoogleFonts.montserrat(
+              color: textColor,
+              fontSize: fontSize.toDouble(),
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () async {
+              if (!await launchUrl(Uri.parse(linkString.contains('https://')
+                  ? linkString
+                  : "https://$linkString"))) {
+                Fluttertoast.showToast(msg: "Could not launch $linkString");
+              }
+            },
+        ),
+      );
+      return linkString;
     }
+
+    getNormalText(String normalText) {
+      textSpan.add(
+        TextSpan(
+          text: normalText,
+          style: GoogleFonts.montserrat(
+              color: textColor,
+              fontSize: fontSize.toDouble(),
+              fontWeight: FontWeight.w600),
+        ),
+      );
+      return normalText;
+    }
+
+    rawString.splitMapJoin(
+      urlRegExp,
+      onMatch: (m) => getLink("${m.group(0)}"),
+      onNonMatch: (n) => getNormalText("${n.substring(0)}"),
+    );
+
+    return textSpan;
   }
 }
 
-class ImageUtils {
-  Future<File?> compressFile(File file) async {
-    try {
-      final filePath = file.absolute.path;
+class DateTimeUtils {
+  static String hourMinute = 'HH:mm';
+  static String dayMonthYear = 'dd MMMM yyyy';
 
-      // Create output file path
-      // eg:- "Volume/VM/abcd_out.jpeg"
-      final lastIndex = filePath.lastIndexOf(new RegExp(r'.png|.jp'));
-      final splitted = filePath.substring(0, (lastIndex));
-      final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
-      var result = await FlutterImageCompress.compressAndGetFile(
-        file.absolute.path,
-        outPath,
-        quality: 5,
-      );
+  static bool isDifferentDay(int previousTimeStamp, int currentTimeStamp) {
+    return getDayMonthYearString(previousTimeStamp) !=
+        getDayMonthYearString(currentTimeStamp);
+  }
 
-      if (result != null) {
-        var finalFile = File(result.path);
-        print(file.lengthSync());
-        print(finalFile.lengthSync());
+  static String getDayMonthYearString(int timeStamp) {
+    return DateFormat(dayMonthYear)
+        .format(DateTime.fromMillisecondsSinceEpoch(timeStamp));
+  }
 
-        return file;
-      } else {
-        return null;
-      }
-    } catch (e, s) {
-      print(s);
-      return null;
-    }
+  static String getTimeByTimezone(int timestamp, String dateFormat) {
+    return DateFormat(dateFormat).format(
+        DateTime.fromMillisecondsSinceEpoch(timestamp).toUtc().add(
+            DateTime.fromMillisecondsSinceEpoch(timestamp).timeZoneOffset));
+  }
+}
+
+class ColorUtils {
+  static int getColor(String hex) {
+    String formattedHex = 'FF${hex.toUpperCase().replaceAll("#", "")}';
+    return int.parse(formattedHex, radix: 16);
   }
 }

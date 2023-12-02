@@ -44,37 +44,37 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCmiDMa0pkU3Gwa1t4CkkAYHKSd3_uxd40',
-    appId: '1:169112403190:web:7d2c3777fce08834f300d7',
-    messagingSenderId: '169112403190',
-    projectId: 'flutter-chat-cfc59',
-    authDomain: 'flutter-chat-cfc59.firebaseapp.com',
-    storageBucket: 'flutter-chat-cfc59.appspot.com',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    authDomain: '',
+    storageBucket: '',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCBGIaPSslUUUHgZd2CICLWXi7wPP3f3C0',
-    appId: '1:169112403190:android:ff38deb7beda510cf300d7',
-    messagingSenderId: '169112403190',
-    projectId: 'flutter-chat-cfc59',
-    storageBucket: 'flutter-chat-cfc59.appspot.com',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCGn4CgGDw1d0ojhZtgXXaSplGHLP2V5qE',
-    appId: '1:169112403190:ios:3126445eff416f07f300d7',
-    messagingSenderId: '169112403190',
-    projectId: 'flutter-chat-cfc59',
-    storageBucket: 'flutter-chat-cfc59.appspot.com',
-    iosBundleId: 'com.example.flutterMac',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
+    iosBundleId: '',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCGn4CgGDw1d0ojhZtgXXaSplGHLP2V5qE',
-    appId: '1:169112403190:ios:e4f3f7af6d9a4c78f300d7',
-    messagingSenderId: '169112403190',
-    projectId: 'flutter-chat-cfc59',
-    storageBucket: 'flutter-chat-cfc59.appspot.com',
-    iosBundleId: 'com.example.flutterMac.RunnerTests',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
+    iosBundleId: '',
   );
 }
