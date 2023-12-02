@@ -60,9 +60,9 @@ class ChatViewModel {
   }
 
   void init() {
-    _dbService.getOnlineStatus(userProfile.uid).listen((online) {
-      _onlineProvidor.add(online);
-    });
+    // _dbService.getOnlineStatus(userProfile.uid).listen((online) {
+    //   _onlineProvidor.add(online);
+    // });
   }
 
   Stream<List<MessageV2>> get messageStream => _messageStreamProvidor.stream;

@@ -93,3 +93,4 @@ app.*.map.json
 /ios/Podfile.lock
 
 /.vscode
+/lib/firebase_options.dart
