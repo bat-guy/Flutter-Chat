@@ -227,6 +227,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                                 messageType: MessageType.DATE,
                               ),
                               messagePref: _messagePref,
+                              replyClicked: (t) {},
                               showReplyWidget: (t) {},
                               guestName: '',
                             ),
@@ -238,6 +239,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                                 isMe: true,
                               ),
                               messagePref: _messagePref,
+                              replyClicked: (t) {},
                               showReplyWidget: (t) {},
                               guestName: '',
                             ),
@@ -249,6 +251,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                                 isMe: false,
                               ),
                               messagePref: _messagePref,
+                              replyClicked: (t) {},
                               showReplyWidget: (t) {},
                               guestName: '',
                             )

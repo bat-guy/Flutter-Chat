@@ -366,6 +366,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   msg: snapshot.data![index],
                   messagePref: pref,
                   guestName: widget.userProfile.name,
+                  replyClicked: (msg) => _chatViewModel.onReplyClicked(msg),
                   showReplyWidget: (msg) =>
                       _chatViewModel.setReplyMessage(msg));
             })

@@ -272,4 +272,22 @@ class DatabaseService {
       map.addAll({ChatConstants.reply: ReplyType.toMap(reply)});
     }
   }
+
+  getMessagesFrom(int timestamp) async {
+    if (!loading && _lastDoc != null) {
+      loading = true;
+      var data = await _messageCollection
+          .orderBy(ChatConstants.timestamp, descending: true)
+          .startAfterDocument(_lastDoc!)
+          .where(ChatConstants.timestamp, isGreaterThanOrEqualTo: timestamp)
+          .get();
+      loading = false;
+      if (data.docs.isNotEmpty) {
+        _lastDoc = data.docs.last;
+        return _setChatListFromQuerySnapshot(data);
+      }
+    }
+    loading = false;
+    return null;
+  }
 }

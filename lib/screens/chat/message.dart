@@ -20,11 +20,13 @@ class MessageWidget extends StatefulWidget {
       required this.msg,
       required this.messagePref,
       required this.showReplyWidget,
+      required this.replyClicked,
       required this.guestName});
   final String guestName;
   final MessageV2 msg;
   final MessagePref messagePref;
   final Function(MessageV2) showReplyWidget;
+  final Function(MessageV2) replyClicked;
   @override
   State<MessageWidget> createState() => _MyWidgetState();
 }
@@ -36,45 +38,28 @@ class _MyWidgetState extends State<MessageWidget> {
   Widget build(BuildContext context) {
     MessageV2 msg = widget.msg;
 
-    return Row(
-      mainAxisAlignment: _getAlignment(msg),
-      children: [
-        Flexible(
-          child: Container(
-              margin: _getBoxMargin(msg),
-              padding: _getBoxPadding(msg),
-              decoration: BoxDecoration(
-                color: _getBoxColor(msg, widget.messagePref),
-                borderRadius: BorderRadius.circular(8.0),
-                // boxShadow: _getBoxShadow(msg),
-              ),
-              child: GestureDetector(
-                  onTap: () {
-                    if (msg.messageType == MessageType.IMAGE) {
-                      ScreenNavigator.openImagePreview(
-                          msg.url as String, context);
-                    }
-                  },
-                  onLongPress: () async {
-                    if (!Platform.isMacOS &&
-                        msg.messageType == MessageType.TEXT) {
-                      await Clipboard.setData(ClipboardData(text: msg.msg!));
-                      BotToast.showText(
-                          text: StringConstants.coppiedSuccessfully);
-                    }
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildMessageOptions(
-                          msg, widget.messagePref, widget.showReplyWidget),
-                      _buildReplyWidget(msg, widget.guestName),
-                      _buildMessageWidget(msg),
-                      _buildDateWidget(msg)
-                    ],
-                  ))),
-        ),
-      ],
+    return Align(
+      alignment: _getAlignment(msg),
+      child: Container(
+          margin: _getBoxMargin(msg),
+          padding: _getBoxPadding(msg),
+          decoration: BoxDecoration(
+            color: _getBoxColor(msg, widget.messagePref),
+            borderRadius: BorderRadius.circular(8.0),
+            // boxShadow: _getBoxShadow(msg),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              msg.messageType != MessageType.DATE
+                  ? _showMessageOptions(
+                      msg, widget.messagePref, widget.showReplyWidget)
+                  : const SizedBox(),
+              _buildReplyWidget(msg, widget.guestName, widget.replyClicked),
+              _buildMessageWidget(msg),
+              _buildDateWidget(msg)
+            ],
+          )),
     );
   }
 
@@ -107,11 +92,11 @@ class _MyWidgetState extends State<MessageWidget> {
 
   _getAlignment(MessageV2 msg) {
     if (msg.messageType == MessageType.DATE) {
-      return MainAxisAlignment.center;
+      return Alignment.center;
     } else if (msg.isMe!) {
-      return MainAxisAlignment.end;
+      return Alignment.centerRight;
     } else {
-      return MainAxisAlignment.start;
+      return Alignment.centerLeft;
     }
   }
 
@@ -126,25 +111,29 @@ class _MyWidgetState extends State<MessageWidget> {
             widget.messagePref.messageTextSize),
       ));
     } else if (msg.messageType == MessageType.IMAGE) {
-      return CachedNetworkImage(
-        imageUrl: msg.url as String,
-        imageBuilder: (context, imageProvider) => Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
-              fit: BoxFit.cover,
-              colorFilter: const ColorFilter.mode(
-                Colors.transparent,
-                BlendMode.colorBurn,
+      return GestureDetector(
+          onTap: () =>
+              ScreenNavigator.openImagePreview(msg.url as String, context),
+          child: CachedNetworkImage(
+            imageUrl: msg.url as String,
+            imageBuilder: (context, imageProvider) => Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.transparent,
+                    BlendMode.colorBurn,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        placeholder: (context, url) => const SpinKitCircle(color: Colors.red),
-        errorWidget: (context, url, error) => const Icon(Icons.error),
-        height: 150,
-        width: 150,
-      );
+            placeholder: (context, url) =>
+                const SpinKitCircle(color: Colors.red),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+            height: 150,
+            width: 150,
+          ));
     } else if (msg.messageType == MessageType.GIF ||
         msg.messageType == MessageType.STICKER) {
       return CachedNetworkImage(
@@ -213,56 +202,63 @@ class _MyWidgetState extends State<MessageWidget> {
     }
   }
 
-  _buildMessageOptions(MessageV2 msg, MessagePref pref, showReplyWidget) {
-    return Platform.isMacOS && msg.messageType != MessageType.DATE
-        ? PopupMenuButton(
-            constraints: const BoxConstraints(),
-            iconSize: 10,
-            child: Icon(
-              key: yourKey,
-              Icons.arrow_drop_down_outlined,
-              size: 18,
-              color: (msg.isMe != null && msg.isMe!)
-                  ? pref.senderTextColor
-                  : pref.receiverTextColor,
-            ),
-            onSelected: (value) async {
-              if (value == 1) {
-                await Clipboard.setData(
-                    ClipboardData(text: msg.msg.toString()));
-                BotToast.showText(text: StringConstants.coppiedSuccessfully);
-              } else {
-                showReplyWidget(msg);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(value: 1, child: Text(StringConstants.copy)),
-              PopupMenuItem(value: 2, child: Text(StringConstants.reply)),
-            ],
-          )
-        : const SizedBox();
+  PopupMenuButton<int> _showMessageOptions(
+      MessageV2 msg, MessagePref pref, showReplyWidget) {
+    return PopupMenuButton(
+      constraints: const BoxConstraints(),
+      iconSize: 10,
+      child: Icon(
+        key: yourKey,
+        Icons.arrow_drop_down_outlined,
+        size: 18,
+        color: (msg.isMe != null && msg.isMe!)
+            ? pref.senderTextColor
+            : pref.receiverTextColor,
+      ),
+      onSelected: (value) async {
+        if (value == 1) {
+          showReplyWidget(msg);
+        } else {
+          await Clipboard.setData(ClipboardData(text: msg.msg.toString()));
+          BotToast.showText(text: StringConstants.coppiedSuccessfully);
+        }
+      },
+      itemBuilder: (context) {
+        final list = [
+          PopupMenuItem(value: 1, child: Text(StringConstants.reply))
+        ];
+        if (msg.messageType == MessageType.TEXT) {
+          list.add(PopupMenuItem(value: 1, child: Text(StringConstants.copy)));
+        }
+        return list;
+      },
+    );
   }
 
-  _buildReplyWidget(MessageV2 msg, String name) {
+  _buildReplyWidget(
+      MessageV2 msg, String name, Function(MessageV2) replyClicked) {
     if (msg.reply != null) {
-      return Container(
-          padding: const EdgeInsets.all(5),
-          margin: const EdgeInsets.only(bottom: 5),
-          decoration: BoxDecoration(
-              border: Border.all(
-                  color: Colors.white, width: 1, style: BorderStyle.solid),
-              color: Colors.white60,
-              borderRadius: BorderRadius.circular(5)),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              msg.reply!.isMe ? '${StringConstants.you}:' : '$name:',
-              style: GoogleFonts.montserrat(
-                  fontWeight: FontWeight.w600, fontSize: 12),
-            ),
-            const SizedBox(height: 8),
-            _getReplyWidgetByType(msg.reply!),
-          ]));
+      return GestureDetector(
+          onTap: () => replyClicked(msg),
+          child: Container(
+              padding: const EdgeInsets.all(5),
+              margin: const EdgeInsets.only(bottom: 5),
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Colors.white, width: 1, style: BorderStyle.solid),
+                  color: Colors.white60,
+                  borderRadius: BorderRadius.circular(5)),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      msg.reply!.isMe ? '${StringConstants.you}:' : '$name:',
+                      style: GoogleFonts.montserrat(
+                          fontWeight: FontWeight.w600, fontSize: 12),
+                    ),
+                    const SizedBox(height: 8),
+                    _getReplyWidgetByType(msg.reply!),
+                  ])));
     } else {
       return const SizedBox();
     }

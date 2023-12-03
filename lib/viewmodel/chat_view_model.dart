@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:io';
-
-// import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
@@ -271,5 +269,15 @@ class ChatViewModel {
                 : msg.url.toString(),
             uid: msg.uid.toString(),
             isMe: msg.isMe!));
+  }
+
+  onReplyClicked(MessageV2 msg) {
+    final index =
+        _messageList.lastIndexWhere((element) => element.id == msg.reply!.id);
+    if (index == -1) {
+      Logger.print('Index - Nope');
+    } else {
+      Logger.print('Index - $index');
+    }
   }
 }
