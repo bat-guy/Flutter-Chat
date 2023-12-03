@@ -1,33 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_mac/common/constants.dart';
+import 'package:flutter_mac/extensions.dart';
+import 'package:flutter_mac/models/reply_type.dart';
 import 'package:flutter_mac/models/state_enums.dart';
-
-class Message {
-  String id;
-  String? msg;
-  String uid;
-  String? name;
-  String? imageUrl;
-  Timestamp timestamp;
-  bool isMe;
-  Message(
-      {required this.id,
-      this.msg,
-      required this.uid,
-      this.imageUrl,
-      required this.timestamp,
-      required this.isMe});
-
-  static Message fromMap(QueryDocumentSnapshot<Object?> e, String uid) {
-    return Message(
-        uid: e.get(ChatConstants.uid),
-        id: e.id,
-        isMe: e.get(ChatConstants.uid) == uid,
-        msg: e.get(ChatConstants.msg),
-        timestamp: e.get(ChatConstants.timestamp),
-        imageUrl: e.get(ChatConstants.imageUrl));
-  }
-}
 
 class MessageV2 {
   String? uid;
@@ -37,6 +12,7 @@ class MessageV2 {
   String messageType;
   int timestamp;
   bool? isMe;
+  ReplyType? reply;
   MessageV2(
       {this.id,
       this.uid,
@@ -44,6 +20,7 @@ class MessageV2 {
       this.url,
       required this.timestamp,
       required this.messageType,
+      this.reply,
       this.isMe});
 
   Map<String, dynamic> toMapEntry() {
@@ -58,24 +35,30 @@ class MessageV2 {
 
   static MessageV2 fromMap(
       DocumentSnapshot<Object?> e, String uid, bool isDate) {
+    Map<String, dynamic>? map = e.data() as Map<String, dynamic>?;
     final v = (isDate)
         ? MessageV2(
-            timestamp: e.get(ChatConstants.messageType),
+            timestamp: map!.valueOrNull(ChatConstants.messageType),
             messageType: MessageType.DATE)
         : MessageV2(
             id: e.id,
-            uid: e.get(ChatConstants.uid),
-            isMe: e.get(ChatConstants.uid) == uid,
-            msg: e.get(ChatConstants.messageType) != MessageType.TEXT
+            uid: map!.valueOrNull(ChatConstants.uid),
+            isMe: map.valueOrNull(ChatConstants.uid) == uid,
+            msg: map.valueOrNull(ChatConstants.messageType) != MessageType.TEXT
                 ? null
-                : e.get(ChatConstants.msg),
-            messageType: e.get(ChatConstants.messageType),
-            timestamp: e.get(ChatConstants.timestamp),
-            url: (e.get(ChatConstants.messageType) == MessageType.GIF ||
-                    e.get(ChatConstants.messageType) == MessageType.STICKER ||
-                    e.get(ChatConstants.messageType) == MessageType.IMAGE)
-                ? e.get(ChatConstants.url)
-                : null);
+                : map.valueOrNull(ChatConstants.msg),
+            messageType: map.valueOrNull(ChatConstants.messageType),
+            timestamp: map.valueOrNull(ChatConstants.timestamp),
+            url: (map.valueOrNull(ChatConstants.messageType) ==
+                        MessageType.GIF ||
+                    map.valueOrNull(ChatConstants.messageType) ==
+                        MessageType.STICKER ||
+                    map.valueOrNull(ChatConstants.messageType) ==
+                        MessageType.IMAGE)
+                ? map.valueOrNull(ChatConstants.url)
+                : null,
+            reply:
+                ReplyType.fromMap(map.valueOrNull(ChatConstants.reply), uid));
     return v;
   }
 

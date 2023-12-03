@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -252,7 +253,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 textInputAction: TextInputAction.go,
                                 onSubmitted: (value) =>
                                     _chatViewModel.sendMessage(
-                                        _messageController.text.trim()),
+                                        _messageController.text.trim(),
+                                        _replyType),
                               ),
                             ),
                             GestureDetector(
@@ -263,8 +265,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             ),
                             IconButton(
                               icon: const Icon(Icons.send),
-                              onPressed: () => _chatViewModel
-                                  .sendMessage(_messageController.text.trim()),
+                              onPressed: () => _chatViewModel.sendMessage(
+                                  _messageController.text.trim(), _replyType),
                             ),
                           ],
                         ),
@@ -363,6 +365,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               return MessageWidget(
                   msg: snapshot.data![index],
                   messagePref: pref,
+                  guestName: widget.userProfile.name,
                   showReplyWidget: (msg) =>
                       _chatViewModel.setReplyMessage(msg));
             })
@@ -392,7 +395,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ],
       elevation: 8.0,
     ).then((value) async {
-      _chatViewModel.popUpMenuAction(value, context);
+      _chatViewModel.popUpMenuAction(value, context, _replyType);
     });
   }
 
@@ -434,12 +437,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           Text(
                             (_replyType != null && !_replyType!.isMe)
                                 ? '$name:'
-                                : 'You:',
+                                : '${StringConstants.you}:',
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.montserrat(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          const SizedBox(height: 5),
                           _getReplyText(name)
                         ]),
                   ),
@@ -458,13 +462,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         Visibility(
             visible: _replyType!.messageType != MessageType.TEXT,
             child: Container(
-              margin: const EdgeInsets.only(right: 7, top: 7),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  color: const Color.fromARGB(179, 122, 120, 120)),
-            )),
+                margin: const EdgeInsets.only(right: 7, top: 7),
+                child: CachedNetworkImage(
+                  imageUrl: _replyType!.value,
+                  imageBuilder: (context, imageProvider) => Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.transparent,
+                          BlendMode.colorBurn,
+                        ),
+                      ),
+                    ),
+                  ),
+                  placeholder: (context, url) =>
+                      const SpinKitCircle(color: Colors.red),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  height: 50,
+                  width: 50,
+                ))),
         Text(
           (_replyType!.messageType == MessageType.TEXT)
               ? _replyType!.value.toString()

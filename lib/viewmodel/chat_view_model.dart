@@ -148,14 +148,16 @@ class ChatViewModel {
     }
   }
 
-  void sendMessage(String text) async {
+  void sendMessage(String text, ReplyType? reply) async {
     if (text.isNotEmpty) {
       _messageControllerStreamProvidor.add(true);
-      await _dbService.sendMessage(msg: text.trim());
+      await _dbService.sendMessage(msg: text.trim(), reply: reply);
+      setReplyMessage(null);
     }
   }
 
-  void popUpMenuAction(int? value, BuildContext context) async {
+  void popUpMenuAction(
+      int? value, BuildContext context, ReplyType? reply) async {
     if (value != null) {
       if (value == 1) {
         GiphyGif? gif = await GiphyGet.getGif(
@@ -168,10 +170,13 @@ class ChatViewModel {
             gif.images != null &&
             gif.images!.fixedHeightDownsampled != null) {
           if (gif.type == 'gif') {
-            _dbService.sendGIF(url: gif.images!.fixedHeightDownsampled!.url);
+            _dbService.sendGIF(
+                url: gif.images!.fixedHeightDownsampled!.url, reply: reply);
+            setReplyMessage(null);
           } else if (gif.type == 'sticker') {
             _dbService.sendSticker(
-                url: gif.images!.fixedHeightDownsampled!.url);
+                url: gif.images!.fixedHeightDownsampled!.url, reply: reply);
+            setReplyMessage(null);
           }
         }
       } else {
@@ -208,7 +213,8 @@ class ChatViewModel {
             return null;
           });
           if (downloadUrl != null) {
-            _dbService.sendImage(url: downloadUrl);
+            _dbService.sendImage(url: downloadUrl, reply: reply);
+            setReplyMessage(null);
             _messageControllerStreamProvidor.add(true);
           }
         }
@@ -248,6 +254,7 @@ class ChatViewModel {
     _newMessageProvidor.close();
     _onlineProvidor.close();
     _messageStreamSubscription.cancel();
+    _replyProvidor.close();
   }
 
   void setReplyMessage(MessageV2? msg) {

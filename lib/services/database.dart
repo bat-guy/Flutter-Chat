@@ -3,6 +3,7 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/extensions.dart';
 import 'package:flutter_mac/models/message.dart';
+import 'package:flutter_mac/models/reply_type.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
@@ -29,40 +30,48 @@ class DatabaseService {
         .map(_messageListFromSnapshot);
   }
 
-  Future sendMessage({required String msg}) async {
-    return await _messageCollection.add({
+  Future sendMessage({required String msg, required ReplyType? reply}) async {
+    final Map<String, dynamic> map = {
       ChatConstants.uid: uid,
       ChatConstants.msg: msg,
       ChatConstants.messageType: MessageType.TEXT,
       ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
-    });
+    };
+    _addReplyObject(reply, map);
+    return await _messageCollection.add(map);
   }
 
-  Future sendImage({required String url}) async {
-    return await _messageCollection.add({
+  Future sendImage({required String url, required ReplyType? reply}) async {
+    final Map<String, dynamic> map = {
       ChatConstants.uid: uid,
       ChatConstants.url: url,
       ChatConstants.messageType: MessageType.IMAGE,
       ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
-    });
+    };
+    _addReplyObject(reply, map);
+    return await _messageCollection.add(map);
   }
 
-  Future sendGIF({required String url}) async {
-    return await _messageCollection.add({
+  Future sendGIF({required String url, required ReplyType? reply}) async {
+    final Map<String, dynamic> map = {
       ChatConstants.uid: uid,
       ChatConstants.url: url,
       ChatConstants.messageType: MessageType.GIF,
       ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
-    });
+    };
+    _addReplyObject(reply, map);
+    return await _messageCollection.add(map);
   }
 
-  Future sendSticker({required String url}) async {
-    return await _messageCollection.add({
+  Future sendSticker({required String url, required ReplyType? reply}) async {
+    final Map<String, dynamic> map = {
       ChatConstants.uid: uid,
       ChatConstants.url: url,
       ChatConstants.messageType: MessageType.STICKER,
       ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
-    });
+    };
+    _addReplyObject(reply, map);
+    return await _messageCollection.add(map);
   }
 
   Future<bool> createUser(String uid) async {
@@ -255,6 +264,12 @@ class DatabaseService {
       await _userCollection
           .doc(uid)
           .update({PrefenceConstants.preference: map});
+    }
+  }
+
+  void _addReplyObject(ReplyType? reply, Map<String, dynamic> map) {
+    if (reply != null) {
+      map.addAll({ChatConstants.reply: ReplyType.toMap(reply)});
     }
   }
 }

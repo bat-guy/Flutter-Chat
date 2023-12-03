@@ -35,6 +35,7 @@ class StringConstants {
   static String gif = 'Gif';
   static String image = 'Image';
   static String pleaseWait = 'Please Wait...';
+  static String you = 'You';
 }
 
 class ChatConstants {
@@ -48,6 +49,9 @@ class ChatConstants {
   static String online = 'online';
   static String profilePicture = 'profile_picture';
   static String quote = 'quote';
+  static String reply = 'reply';
+  static String id = 'id';
+  static String value = 'value';
 }
 
 class PrefenceConstants {

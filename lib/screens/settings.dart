@@ -228,6 +228,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                               ),
                               messagePref: _messagePref,
                               showReplyWidget: (t) {},
+                              guestName: '',
                             ),
                             MessageWidget(
                               msg: MessageV2(
@@ -238,6 +239,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                               ),
                               messagePref: _messagePref,
                               showReplyWidget: (t) {},
+                              guestName: '',
                             ),
                             MessageWidget(
                               msg: MessageV2(
@@ -248,6 +250,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                               ),
                               messagePref: _messagePref,
                               showReplyWidget: (t) {},
+                              guestName: '',
                             )
                           ],
                         ),

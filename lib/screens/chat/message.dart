@@ -6,18 +6,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
+import 'package:flutter_mac/models/reply_type.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MessageWidget extends StatefulWidget {
   const MessageWidget(
       {super.key,
       required this.msg,
       required this.messagePref,
-      required this.showReplyWidget});
+      required this.showReplyWidget,
+      required this.guestName});
+  final String guestName;
   final MessageV2 msg;
   final MessagePref messagePref;
   final Function(MessageV2) showReplyWidget;
@@ -64,26 +68,30 @@ class _MyWidgetState extends State<MessageWidget> {
                     children: [
                       _buildMessageOptions(
                           msg, widget.messagePref, widget.showReplyWidget),
+                      _buildReplyWidget(msg, widget.guestName),
                       _buildMessageWidget(msg),
-                      Visibility(
-                        visible: msg.messageType != MessageType.DATE,
-                        child: Container(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Text(
-                            DateTimeUtils.getTimeByTimezone(
-                                msg.timestamp, DateTimeUtils.hourMinute),
-                            style: TextStyle(
-                              fontSize:
-                                  widget.messagePref.messageTimeSize.toDouble(),
-                              color: _getTimeColor(msg, widget.messagePref),
-                            ),
-                          ),
-                        ),
-                      )
+                      _buildDateWidget(msg)
                     ],
                   ))),
         ),
       ],
+    );
+  }
+
+  Visibility _buildDateWidget(MessageV2 msg) {
+    return Visibility(
+      visible: msg.messageType != MessageType.DATE,
+      child: Container(
+        padding: const EdgeInsets.only(top: 5),
+        child: Text(
+          DateTimeUtils.getTimeByTimezone(
+              msg.timestamp, DateTimeUtils.hourMinute),
+          style: TextStyle(
+            fontSize: widget.messagePref.messageTimeSize.toDouble(),
+            color: _getTimeColor(msg, widget.messagePref),
+          ),
+        ),
+      ),
     );
   }
 
@@ -233,5 +241,60 @@ class _MyWidgetState extends State<MessageWidget> {
             ],
           )
         : const SizedBox();
+  }
+
+  _buildReplyWidget(MessageV2 msg, String name) {
+    if (msg.reply != null) {
+      return Container(
+          padding: const EdgeInsets.all(5),
+          margin: const EdgeInsets.only(bottom: 5),
+          decoration: BoxDecoration(
+              border: Border.all(
+                  color: Colors.white, width: 1, style: BorderStyle.solid),
+              color: Colors.white60,
+              borderRadius: BorderRadius.circular(5)),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              msg.reply!.isMe ? '${StringConstants.you}:' : '$name:',
+              style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.w600, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            _getReplyWidgetByType(msg.reply!),
+          ]));
+    } else {
+      return const SizedBox();
+    }
+  }
+
+  _getReplyWidgetByType(ReplyType reply) {
+    if (reply.messageType == MessageType.TEXT) {
+      return Text(
+        reply.value,
+        style:
+            GoogleFonts.montserrat(fontWeight: FontWeight.normal, fontSize: 12),
+      );
+    } else {
+      return CachedNetworkImage(
+        imageUrl: reply.value,
+        imageBuilder: (context, imageProvider) => Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: imageProvider,
+              fit: BoxFit.cover,
+              colorFilter: const ColorFilter.mode(
+                Colors.transparent,
+                BlendMode.colorBurn,
+              ),
+            ),
+          ),
+        ),
+        placeholder: (context, url) => const SpinKitCircle(color: Colors.red),
+        errorWidget: (context, url, error) => const Icon(Icons.error),
+        height: 80,
+        width: 120,
+      );
+    }
   }
 }
