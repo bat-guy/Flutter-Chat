@@ -29,6 +29,12 @@ class StringConstants {
   static String update = 'UPDATE';
   static String typeMessage = 'Type a message...';
   static String useSmallerImage = 'Please use a smaller image.';
+  static String coppiedSuccessfully = 'Copied Successfully';
+  static String copy = 'Copy';
+  static String reply = 'Reply';
+  static String gif = 'Gif';
+  static String image = 'Image';
+  static String pleaseWait = 'Please Wait...';
 }
 
 class ChatConstants {
@@ -65,6 +71,7 @@ class PrefenceConstants {
   static String receiverTimeColor = 'receiverTimeColor';
   static String messageSound = 'messageSound';
   static String preference = 'preference';
+  static int maxCharReplyObject = 100;
 }
 
 class KeyConstants {

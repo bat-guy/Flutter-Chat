@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/models/message.dart';
+import 'package:flutter_mac/models/reply_type.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/navigator.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_mac/screens/chat/message.dart';
 import 'package:flutter_mac/viewmodel/chat_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:google_fonts/google_fonts.dart';
 
 class ChatScreen extends StatefulWidget {
   final UserCred userCred;
@@ -40,6 +42,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _pref = AppPreference();
   AppColorPref _colorsPref = AppColorPref();
   MessagePref _messagePref = MessagePref();
+  ReplyType? _replyType;
 
   @override
   initState() {
@@ -76,6 +79,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
     _chatViewModel.newMessageStream.listen((isVisible) {
       if (mounted) setState(() => _newMessage = isVisible);
+    });
+    _chatViewModel.replyStream.listen((e) {
+      if (mounted) setState(() => _replyType = e);
     });
     // _chatViewModel.onlineStream.listen((online) {
     //   if (mounted) setState(() => _online = online);
@@ -140,17 +146,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ],
             ),
             body: switch (_viewState) {
-              ViewState.loading => const Center(
+              ViewState.loading => Center(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        SpinKitCubeGrid(
+                        const SpinKitCubeGrid(
                           color: Colors.red,
                         ),
                         Text(
-                          'Please wait...',
-                          style: TextStyle(fontSize: 16, color: Colors.black),
+                          StringConstants.pleaseWait,
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.black),
                         )
                       ]),
                 ),
@@ -219,6 +226,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           ],
                         ),
                       ),
+                      _buildReplyWidget(widget.userProfile.name),
                       Container(
                         padding: const EdgeInsets.all(8.0),
                         color: Colors.white70,
@@ -353,7 +361,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             reverse: true,
             itemBuilder: (context, index) {
               return MessageWidget(
-                  msg: snapshot.data![index], messagePref: pref);
+                  msg: snapshot.data![index],
+                  messagePref: pref,
+                  showReplyWidget: (msg) =>
+                      _chatViewModel.setReplyMessage(msg));
             })
         : const Center(child: Text('No data...'));
   }
@@ -376,8 +387,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context: context,
       position: RelativeRect.fromLTRB(offset.dx + 30, offset.dy + 30, 0, 0),
       items: [
-        const PopupMenuItem(value: 1, child: Text("Gif")),
-        const PopupMenuItem(value: 2, child: Text("Image")),
+        PopupMenuItem(value: 1, child: Text(StringConstants.gif)),
+        PopupMenuItem(value: 2, child: Text(StringConstants.image)),
       ],
       elevation: 8.0,
     ).then((value) async {
@@ -392,6 +403,92 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeIn,
       );
+    }
+  }
+
+  _buildReplyWidget(String name) {
+    return Visibility(
+        visible: _replyType != null,
+        child: Container(
+          padding: const EdgeInsets.all(5),
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(5),
+              topRight: Radius.circular(5),
+            ),
+            color: Colors.white70,
+          ),
+          child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                  color: Colors.white60,
+                  borderRadius: BorderRadius.circular(5)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (_replyType != null && !_replyType!.isMe)
+                                ? '$name:'
+                                : 'You:',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.montserrat(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          _getReplyText(name)
+                        ]),
+                  ),
+                  IconButton(
+                      onPressed: () =>
+                          setState(() => _chatViewModel.setReplyMessage(null)),
+                      icon: const Icon(Icons.close))
+                ],
+              )),
+        ));
+  }
+
+  _getReplyText(String name) {
+    if (_replyType != null) {
+      return Row(children: [
+        Visibility(
+            visible: _replyType!.messageType != MessageType.TEXT,
+            child: Container(
+              margin: const EdgeInsets.only(right: 7, top: 7),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: const Color.fromARGB(179, 122, 120, 120)),
+            )),
+        Text(
+          (_replyType!.messageType == MessageType.TEXT)
+              ? _replyType!.value.toString()
+              : _getMediaTitle(_replyType!.messageType, _replyType!.value),
+          softWrap: true,
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.normal,
+          ),
+        )
+      ]);
+    } else {
+      return const SizedBox();
+    }
+  }
+
+  _getMediaTitle(String messageType, String value) {
+    if (messageType == MessageType.TEXT) {
+      return value;
+    } else if (messageType == MessageType.GIF) {
+      return StringConstants.gif;
+    } else if (messageType == MessageType.IMAGE) {
+      return StringConstants.image;
+    } else {
+      return '';
     }
   }
 }

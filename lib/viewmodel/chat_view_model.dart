@@ -10,6 +10,7 @@ import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/common/logger.dart';
 import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/message.dart';
+import 'package:flutter_mac/models/reply_type.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
@@ -30,6 +31,7 @@ class ChatViewModel {
 
   final _newMessageProvidor = StreamController<bool>();
   final _onlineProvidor = StreamController<bool>();
+  final _replyProvidor = StreamController<ReplyType?>();
   final _messageList = <MessageV2>[];
   late DatabaseService _dbService;
   late StorageService _storageService;
@@ -73,6 +75,7 @@ class ChatViewModel {
   Stream<bool> get messageLoaderStream => _messageLoaderProvidor.stream;
   Stream<bool> get newMessageStream => _newMessageProvidor.stream;
   Stream<bool> get onlineStream => _onlineProvidor.stream;
+  get replyStream => _replyProvidor.stream;
 
   getMessages() {
     _viewState = ViewState.loading;
@@ -245,5 +248,21 @@ class ChatViewModel {
     _newMessageProvidor.close();
     _onlineProvidor.close();
     _messageStreamSubscription.cancel();
+  }
+
+  void setReplyMessage(MessageV2? msg) {
+    _replyProvidor.add(msg == null
+        ? null
+        : ReplyType(
+            messageType: msg.messageType,
+            id: msg.id.toString(),
+            timestamp: msg.timestamp,
+            value: msg.messageType == MessageType.TEXT
+                ? (msg.msg!.length > PrefenceConstants.maxCharReplyObject)
+                    ? '${msg.msg!.substring(0, PrefenceConstants.maxCharReplyObject)}...'
+                    : msg.msg.toString()
+                : msg.url.toString(),
+            uid: msg.uid.toString(),
+            isMe: msg.isMe!));
   }
 }

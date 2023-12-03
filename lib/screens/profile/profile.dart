@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bot_toast/bot_toast.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mac/common/constants.dart';
@@ -9,7 +10,6 @@ import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
 import 'package:flutter_mac/viewmodel/profile_view_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
@@ -44,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     viewModel.toastStream.listen((e) {
       if (e.isNotEmpty) {
         if (Platform.isAndroid || Platform.isIOS) {
-          Fluttertoast.showToast(msg: e, toastLength: Toast.LENGTH_SHORT);
+          BotToast.showText(text: e);
         } else {
           showDialog(
               context: context,

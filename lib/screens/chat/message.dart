@@ -1,24 +1,33 @@
+import 'dart:io';
+
+import 'package:bot_toast/bot_toast.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mac/common/constants.dart';
 import 'package:flutter_mac/models/message.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/navigator.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class MessageWidget extends StatefulWidget {
   const MessageWidget(
-      {super.key, required this.msg, required this.messagePref});
+      {super.key,
+      required this.msg,
+      required this.messagePref,
+      required this.showReplyWidget});
   final MessageV2 msg;
   final MessagePref messagePref;
+  final Function(MessageV2) showReplyWidget;
   @override
   State<MessageWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MessageWidget> {
+  final yourKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     MessageV2 msg = widget.msg;
@@ -43,21 +52,18 @@ class _MyWidgetState extends State<MessageWidget> {
                     }
                   },
                   onLongPress: () async {
-                    if (msg.messageType == MessageType.TEXT) {
+                    if (!Platform.isMacOS &&
+                        msg.messageType == MessageType.TEXT) {
                       await Clipboard.setData(ClipboardData(text: msg.msg!));
-                      Fluttertoast.showToast(
-                          msg: 'Copied Successfully',
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
-                          fontSize: 16.0);
+                      BotToast.showText(
+                          text: StringConstants.coppiedSuccessfully);
                     }
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+                      _buildMessageOptions(
+                          msg, widget.messagePref, widget.showReplyWidget),
                       _buildMessageWidget(msg),
                       Visibility(
                         visible: msg.messageType != MessageType.DATE,
@@ -175,13 +181,13 @@ class _MyWidgetState extends State<MessageWidget> {
   _getBoxMargin(MessageV2 msg) {
     return msg.messageType != MessageType.TEXT
         ? const EdgeInsets.all(8.0)
-        : EdgeInsets.fromLTRB(msg.isMe! ? 30 : 8, 4, msg.isMe! ? 8 : 30, 4);
+        : EdgeInsets.fromLTRB(msg.isMe! ? 8 : 8, 4, msg.isMe! ? 8 : 30, 4);
   }
 
   _getBoxPadding(MessageV2 msg) {
     return msg.messageType != MessageType.TEXT
         ? const EdgeInsets.all(8.0)
-        : EdgeInsets.fromLTRB(msg.isMe! ? 10 : 8, 8, msg.isMe! ? 8 : 10, 8);
+        : EdgeInsets.fromLTRB(msg.isMe! ? 8 : 8, 8, msg.isMe! ? 8 : 8, 8);
   }
 
   _getBoxShadow(MessageV2 msg) {
@@ -197,5 +203,35 @@ class _MyWidgetState extends State<MessageWidget> {
     } else {
       return null;
     }
+  }
+
+  _buildMessageOptions(MessageV2 msg, MessagePref pref, showReplyWidget) {
+    return Platform.isMacOS && msg.messageType != MessageType.DATE
+        ? PopupMenuButton(
+            constraints: const BoxConstraints(),
+            iconSize: 10,
+            child: Icon(
+              key: yourKey,
+              Icons.arrow_drop_down_outlined,
+              size: 18,
+              color: (msg.isMe != null && msg.isMe!)
+                  ? pref.senderTextColor
+                  : pref.receiverTextColor,
+            ),
+            onSelected: (value) async {
+              if (value == 1) {
+                await Clipboard.setData(
+                    ClipboardData(text: msg.msg.toString()));
+                BotToast.showText(text: StringConstants.coppiedSuccessfully);
+              } else {
+                showReplyWidget(msg);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 1, child: Text(StringConstants.copy)),
+              PopupMenuItem(value: 2, child: Text(StringConstants.reply)),
+            ],
+          )
+        : const SizedBox();
   }
 }

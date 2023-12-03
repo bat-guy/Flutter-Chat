@@ -227,6 +227,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                                 messageType: MessageType.DATE,
                               ),
                               messagePref: _messagePref,
+                              showReplyWidget: (t) {},
                             ),
                             MessageWidget(
                               msg: MessageV2(
@@ -236,6 +237,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                                 isMe: true,
                               ),
                               messagePref: _messagePref,
+                              showReplyWidget: (t) {},
                             ),
                             MessageWidget(
                               msg: MessageV2(
@@ -245,6 +247,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                                 isMe: false,
                               ),
                               messagePref: _messagePref,
+                              showReplyWidget: (t) {},
                             )
                           ],
                         ),
