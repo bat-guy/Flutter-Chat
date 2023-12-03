@@ -216,7 +216,7 @@ class _MyWidgetState extends State<MessageWidget> {
             : pref.receiverTextColor,
       ),
       onSelected: (value) async {
-        if (value == 1) {
+        if (value == 0) {
           showReplyWidget(msg);
         } else {
           await Clipboard.setData(ClipboardData(text: msg.msg.toString()));
@@ -225,7 +225,7 @@ class _MyWidgetState extends State<MessageWidget> {
       },
       itemBuilder: (context) {
         final list = [
-          PopupMenuItem(value: 1, child: Text(StringConstants.reply))
+          PopupMenuItem(value: 0, child: Text(StringConstants.reply))
         ];
         if (msg.messageType == MessageType.TEXT) {
           list.add(PopupMenuItem(value: 1, child: Text(StringConstants.copy)));
