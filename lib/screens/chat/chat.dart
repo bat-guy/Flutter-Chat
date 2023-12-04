@@ -462,7 +462,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   _getReplyText(String name) {
     if (_replyType != null) {
-      return _replyType!.messageType != MessageType.TEXT
+      return (_replyType!.messageType != MessageType.TEXT ||
+              _replyType!.messageType != MessageType.LINK_TEXT)
           ? CachedNetworkImage(
               imageUrl: _replyType!.value,
               imageBuilder: (context, imageProvider) => Container(

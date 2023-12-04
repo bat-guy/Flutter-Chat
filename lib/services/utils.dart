@@ -6,13 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TextUtils {
+  static final RegExp _urlRegExp = RegExp(
+      r"((https?:www\.)|(https?:\/\/)|(www\.))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?");
   //This method takes a raw string and gives out a List<TexSpan> that contain normal text and links.
   static List<TextSpan> extractLinkText(
       String rawString, Color textColor, int fontSize) {
     List<TextSpan> textSpan = [];
-
-    final urlRegExp = RegExp(
-        r"((https?:www\.)|(https?:\/\/)|(www\.))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?");
 
     getLink(String linkString) {
       textSpan.add(
@@ -50,12 +49,25 @@ class TextUtils {
     }
 
     rawString.splitMapJoin(
-      urlRegExp,
+      _urlRegExp,
       onMatch: (m) => getLink("${m.group(0)}"),
       onNonMatch: (n) => getNormalText("${n.substring(0)}"),
     );
 
     return textSpan;
+  }
+
+  static bool checkLinks(String text) {
+    var containsLinks = false;
+    text.splitMapJoin(
+      _urlRegExp,
+      onMatch: (m) {
+        containsLinks = true;
+        return '';
+      },
+      onNonMatch: (m) => '',
+    );
+    return containsLinks;
   }
 }
 

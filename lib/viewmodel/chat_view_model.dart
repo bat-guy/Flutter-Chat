@@ -149,7 +149,10 @@ class ChatViewModel {
   void sendMessage(String text, ReplyType? reply) async {
     if (text.isNotEmpty) {
       _messageControllerStreamProvidor.add(true);
-      await _dbService.sendMessage(msg: text.trim(), reply: reply);
+      await _dbService.sendMessage(
+          msg: text.trim(),
+          isLinktext: TextUtils.checkLinks(text.trim()),
+          reply: reply);
       setReplyMessage(null);
     }
   }
@@ -262,7 +265,8 @@ class ChatViewModel {
             messageType: msg.messageType,
             id: msg.id.toString(),
             timestamp: msg.timestamp,
-            value: msg.messageType == MessageType.TEXT
+            value: (msg.messageType == MessageType.TEXT ||
+                    msg.messageType == MessageType.LINK_TEXT)
                 ? (msg.msg!.length > PrefenceConstants.maxCharReplyObject)
                     ? '${msg.msg!.substring(0, PrefenceConstants.maxCharReplyObject)}...'
                     : msg.msg.toString()

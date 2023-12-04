@@ -9,4 +9,5 @@ class MessageType {
   static String GIF = 'GIF';
   static String STICKER = 'STICKER';
   static String DATE = 'DATE';
+  static String LINK_TEXT = 'LINK_TEXT';
 }

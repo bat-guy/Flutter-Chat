@@ -100,7 +100,8 @@ class _MyWidgetState extends State<MessageWidget> {
   }
 
   Widget _buildMessageWidget(MessageV2 msg) {
-    if (msg.messageType == MessageType.TEXT) {
+    if (msg.messageType == MessageType.TEXT ||
+        msg.messageType == MessageType.LINK_TEXT) {
       return SelectableText.rich(
         TextSpan(
           children: TextUtils.extractLinkText(
@@ -177,13 +178,15 @@ class _MyWidgetState extends State<MessageWidget> {
   }
 
   _getBoxMargin(MessageV2 msg) {
-    return msg.messageType != MessageType.TEXT
+    return (msg.messageType != MessageType.TEXT ||
+            msg.messageType != MessageType.LINK_TEXT)
         ? const EdgeInsets.all(8.0)
         : EdgeInsets.fromLTRB(msg.isMe! ? 8 : 8, 4, msg.isMe! ? 8 : 30, 4);
   }
 
   _getBoxPadding(MessageV2 msg) {
-    return msg.messageType != MessageType.TEXT
+    return (msg.messageType != MessageType.TEXT ||
+            msg.messageType != MessageType.LINK_TEXT)
         ? const EdgeInsets.all(8.0)
         : EdgeInsets.fromLTRB(msg.isMe! ? 8 : 8, 8, msg.isMe! ? 8 : 8, 8);
   }
@@ -228,7 +231,8 @@ class _MyWidgetState extends State<MessageWidget> {
         final list = [
           PopupMenuItem(value: 0, child: Text(StringConstants.reply))
         ];
-        if (msg.messageType == MessageType.TEXT) {
+        if (msg.messageType != MessageType.TEXT ||
+            msg.messageType != MessageType.LINK_TEXT) {
           list.add(PopupMenuItem(value: 1, child: Text(StringConstants.copy)));
         }
         return list;
@@ -266,7 +270,8 @@ class _MyWidgetState extends State<MessageWidget> {
   }
 
   _getReplyWidgetByType(ReplyType reply) {
-    if (reply.messageType == MessageType.TEXT) {
+    if (reply.messageType == MessageType.TEXT ||
+        reply.messageType == MessageType.LINK_TEXT) {
       return Text(
         reply.value,
         style:

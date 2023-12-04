@@ -44,19 +44,10 @@ class MessageV2 {
             id: e.id,
             uid: map!.valueOrNull(ChatConstants.uid),
             isMe: map.valueOrNull(ChatConstants.uid) == uid,
-            msg: map.valueOrNull(ChatConstants.messageType) != MessageType.TEXT
-                ? null
-                : map.valueOrNull(ChatConstants.msg),
+            msg: map.valueOrNull(ChatConstants.msg),
             messageType: map.valueOrNull(ChatConstants.messageType),
             timestamp: map.valueOrNull(ChatConstants.timestamp),
-            url: (map.valueOrNull(ChatConstants.messageType) ==
-                        MessageType.GIF ||
-                    map.valueOrNull(ChatConstants.messageType) ==
-                        MessageType.STICKER ||
-                    map.valueOrNull(ChatConstants.messageType) ==
-                        MessageType.IMAGE)
-                ? map.valueOrNull(ChatConstants.url)
-                : null,
+            url: map.valueOrNull(ChatConstants.url),
             reply:
                 ReplyType.fromMap(map.valueOrNull(ChatConstants.reply), uid));
     return v;

@@ -30,11 +30,15 @@ class DatabaseService {
         .map(_messageListFromSnapshot);
   }
 
-  Future sendMessage({required String msg, required ReplyType? reply}) async {
+  Future sendMessage(
+      {required String msg,
+      required bool isLinktext,
+      required ReplyType? reply}) async {
     final Map<String, dynamic> map = {
       ChatConstants.uid: uid,
       ChatConstants.msg: msg,
-      ChatConstants.messageType: MessageType.TEXT,
+      ChatConstants.messageType:
+          isLinktext ? MessageType.LINK_TEXT : MessageType.TEXT,
       ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
     };
     _addReplyObject(reply, map);
