@@ -245,6 +245,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 minLines: 1,
                                 maxLines: 5,
                                 focusNode: _focus,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                                 controller: _messageController,
                                 decoration: InputDecoration(
                                     labelText: StringConstants.typeMessage,
@@ -412,102 +414,82 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   _buildReplyWidget(String name) {
     return Visibility(
-        visible: _replyType != null,
-        child: Container(
+      visible: _replyType != null,
+      child: Container(
           padding: const EdgeInsets.all(5),
-          width: double.infinity,
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(5),
               topRight: Radius.circular(5),
             ),
-            color: Colors.white70,
+            color: Colors.white60,
           ),
           child: Container(
               padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                  color: Colors.white60,
-                  borderRadius: BorderRadius.circular(5)),
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(5)),
+                color: Colors.white60,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Flexible(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            (_replyType != null && !_replyType!.isMe)
-                                ? '$name:'
-                                : '${StringConstants.you}:',
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.montserrat(
-                              fontWeight: FontWeight.w600,
-                            ),
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text(
+                          (_replyType != null && !_replyType!.isMe)
+                              ? '$name:'
+                              : '${StringConstants.you}:',
+                          style: GoogleFonts.montserrat(
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(height: 5),
-                          _getReplyText(name)
-                        ]),
-                  ),
+                          softWrap: true,
+                        ),
+                        const SizedBox(height: 5),
+                        _getReplyText(name)
+                      ])),
                   IconButton(
+                      padding: EdgeInsets.zero,
                       onPressed: () =>
                           setState(() => _chatViewModel.setReplyMessage(null)),
-                      icon: const Icon(Icons.close))
+                      icon: const Icon(Icons.close, size: 20))
                 ],
-              )),
-        ));
+              ))),
+    );
   }
 
   _getReplyText(String name) {
     if (_replyType != null) {
-      return Row(children: [
-        Visibility(
-            visible: _replyType!.messageType != MessageType.TEXT,
-            child: Container(
-                margin: const EdgeInsets.only(right: 7, top: 7),
-                child: CachedNetworkImage(
-                  imageUrl: _replyType!.value,
-                  imageBuilder: (context, imageProvider) => Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.transparent,
-                          BlendMode.colorBurn,
-                        ),
-                      ),
+      return _replyType!.messageType != MessageType.TEXT
+          ? CachedNetworkImage(
+              imageUrl: _replyType!.value,
+              imageBuilder: (context, imageProvider) => Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.transparent,
+                      BlendMode.colorBurn,
                     ),
                   ),
-                  placeholder: (context, url) =>
-                      const SpinKitCircle(color: Colors.red),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                  height: 50,
-                  width: 50,
-                ))),
-        Text(
-          (_replyType!.messageType == MessageType.TEXT)
-              ? _replyType!.value.toString()
-              : _getMediaTitle(_replyType!.messageType, _replyType!.value),
-          softWrap: true,
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.normal,
-          ),
-        )
-      ]);
+                ),
+              ),
+              placeholder: (context, url) =>
+                  const SpinKitCircle(color: Colors.red),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
+              height: 50,
+              width: 50,
+            )
+          : Text(_replyType!.value,
+              softWrap: true,
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.normal,
+              ));
     } else {
       return const SizedBox();
-    }
-  }
-
-  _getMediaTitle(String messageType, String value) {
-    if (messageType == MessageType.TEXT) {
-      return value;
-    } else if (messageType == MessageType.GIF) {
-      return StringConstants.gif;
-    } else if (messageType == MessageType.IMAGE) {
-      return StringConstants.image;
-    } else {
-      return '';
     }
   }
 }

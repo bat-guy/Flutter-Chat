@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +48,7 @@ class _MyWidgetState extends State<MessageWidget> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               msg.messageType != MessageType.DATE
                   ? _showMessageOptions(
@@ -102,14 +101,16 @@ class _MyWidgetState extends State<MessageWidget> {
 
   Widget _buildMessageWidget(MessageV2 msg) {
     if (msg.messageType == MessageType.TEXT) {
-      return SelectableText.rich(TextSpan(
-        children: TextUtils.extractLinkText(
-            msg.msg ?? '',
-            msg.isMe!
-                ? widget.messagePref.senderTextColor
-                : widget.messagePref.receiverTextColor,
-            widget.messagePref.messageTextSize),
-      ));
+      return SelectableText.rich(
+        TextSpan(
+          children: TextUtils.extractLinkText(
+              msg.msg ?? '',
+              msg.isMe!
+                  ? widget.messagePref.senderTextColor
+                  : widget.messagePref.receiverTextColor,
+              widget.messagePref.messageTextSize),
+        ),
+      );
     } else if (msg.messageType == MessageType.IMAGE) {
       return GestureDetector(
           onTap: () =>
