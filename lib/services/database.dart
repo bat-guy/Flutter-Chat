@@ -45,33 +45,14 @@ class DatabaseService {
     return await _messageCollection.add(map);
   }
 
-  Future sendImage({required String url, required ReplyType? reply}) async {
+  Future sendMedia(
+      {required String url,
+      required String messagType,
+      required ReplyType? reply}) async {
     final Map<String, dynamic> map = {
       ChatConstants.uid: uid,
       ChatConstants.url: url,
-      ChatConstants.messageType: MessageType.IMAGE,
-      ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
-    };
-    _addReplyObject(reply, map);
-    return await _messageCollection.add(map);
-  }
-
-  Future sendGIF({required String url, required ReplyType? reply}) async {
-    final Map<String, dynamic> map = {
-      ChatConstants.uid: uid,
-      ChatConstants.url: url,
-      ChatConstants.messageType: MessageType.GIF,
-      ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
-    };
-    _addReplyObject(reply, map);
-    return await _messageCollection.add(map);
-  }
-
-  Future sendSticker({required String url, required ReplyType? reply}) async {
-    final Map<String, dynamic> map = {
-      ChatConstants.uid: uid,
-      ChatConstants.url: url,
-      ChatConstants.messageType: MessageType.STICKER,
+      ChatConstants.messageType: messagType,
       ChatConstants.timestamp: DateTime.timestamp().millisecondsSinceEpoch
     };
     _addReplyObject(reply, map);

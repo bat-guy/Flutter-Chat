@@ -171,12 +171,16 @@ class ChatViewModel {
             gif.images != null &&
             gif.images!.fixedHeightDownsampled != null) {
           if (gif.type == 'gif') {
-            _dbService.sendGIF(
-                url: gif.images!.fixedHeightDownsampled!.url, reply: reply);
+            _dbService.sendMedia(
+                url: gif.images!.fixedHeightDownsampled!.url,
+                reply: reply,
+                messagType: MessageType.GIF);
             setReplyMessage(null);
           } else if (gif.type == 'sticker') {
-            _dbService.sendSticker(
-                url: gif.images!.fixedHeightDownsampled!.url, reply: reply);
+            _dbService.sendMedia(
+                url: gif.images!.fixedHeightDownsampled!.url,
+                reply: reply,
+                messagType: MessageType.STICKER);
             setReplyMessage(null);
           }
         }
@@ -214,7 +218,8 @@ class ChatViewModel {
             return null;
           });
           if (downloadUrl != null) {
-            _dbService.sendImage(url: downloadUrl, reply: reply);
+            _dbService.sendMedia(
+                url: downloadUrl, reply: reply, messagType: MessageType.IMAGE);
             setReplyMessage(null);
             _messageControllerStreamProvidor.add(true);
           }
