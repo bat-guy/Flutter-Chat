@@ -16,13 +16,13 @@ class ReplyType {
       required this.value,
       required this.isMe});
 
-  static Map<String, dynamic> toMap(ReplyType reply) {
+  Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      ChatConstants.uid: reply.uid,
-      ChatConstants.id: reply.id,
-      ChatConstants.messageType: reply.messageType,
-      ChatConstants.timestamp: reply.timestamp,
-      ChatConstants.value: reply.value,
+      ChatConstants.uid: uid,
+      ChatConstants.id: id,
+      ChatConstants.messageType: messageType,
+      ChatConstants.timestamp: timestamp,
+      ChatConstants.value: value,
     };
   }
 

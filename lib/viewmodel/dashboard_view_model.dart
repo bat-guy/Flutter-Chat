@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
-import 'package:flutter_mac/services/database.dart';
+import 'package:flutter_mac/repo/repository.dart';
 
 class DashboardViewModel {
-  late DatabaseService _dbService;
+  late Repository _repo;
   final UserCred _user;
   final _pref = AppPreference();
   final StreamController<AppColorPref> _appColoPrefStream = StreamController();
@@ -13,14 +13,14 @@ class DashboardViewModel {
   Stream<AppColorPref> get appColoPrefStream => _appColoPrefStream.stream;
 
   DashboardViewModel(this._user) {
-    _dbService = DatabaseService(uid: _user.uid);
+    _repo = Repository(_user.uid);
     _setPreference();
     _setImagePref();
     _refreshUserPref();
   }
 
   Future<List<UserProfile>> getUserList() async {
-    return await _dbService.getUserList(_user.uid);
+    return await _repo.getUserList(_user.uid);
   }
 
   _setPreference() async {
@@ -28,16 +28,16 @@ class DashboardViewModel {
   }
 
   _setImagePref() async {
-    _pref.setImagePref(await _dbService.getImagePreference());
+    _pref.setImagePref(await _repo.getImagePreference());
   }
 
   _refreshUserPref() async {
-    final AppPreferenceWrapper? prefData = await _dbService.getUserPreference();
+    final AppPreferenceWrapper? prefData = await _repo.getUserPreference();
     if (prefData == null) {
       final appColorPref = await _pref.getAppColorPref();
       final msgPref = await _pref.getMessagePref();
       final messageSoundPref = await _pref.getMessageSound();
-      await _dbService.setPreference(msgPref, appColorPref, messageSoundPref);
+      await _repo.setPreference(msgPref, appColorPref, messageSoundPref);
     } else {
       await _pref.setMessageColorPreferenceV2(prefData.msgPref);
       await _pref.setMessageTimePreferenceV2(prefData.msgPref);

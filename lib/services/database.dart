@@ -254,7 +254,7 @@ class DatabaseService {
 
   void _addReplyObject(ReplyType? reply, Map<String, dynamic> map) {
     if (reply != null) {
-      map.addAll({ChatConstants.reply: ReplyType.toMap(reply)});
+      map.addAll({ChatConstants.reply: reply.toMap()});
     }
   }
 

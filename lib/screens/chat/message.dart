@@ -43,22 +43,36 @@ class _MyWidgetState extends State<MessageWidget> {
           padding: _getBoxPadding(msg),
           decoration: BoxDecoration(
             color: _getBoxColor(msg, widget.messagePref),
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: _getBoxRadius(msg),
             // boxShadow: _getBoxShadow(msg),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              msg.messageType != MessageType.DATE
-                  ? _showMessageOptions(
-                      msg, widget.messagePref, widget.showReplyWidget)
-                  : const SizedBox(),
-              _buildReplyWidget(msg, widget.guestName, widget.replyClicked),
-              _buildMessageWidget(msg),
-              _buildDateWidget(msg)
-            ],
-          )),
+          child: Stack(children: [
+            Positioned(
+                right: -5,
+                top: -5,
+                child: msg.messageType != MessageType.DATE
+                    ? _showMessageOptions(
+                        msg, widget.messagePref, widget.showReplyWidget)
+                    : const SizedBox()),
+            Container(
+              margin: EdgeInsets.only(
+                  top: msg.messageType != MessageType.DATE ? 13 : 0),
+              child: Stack(children: [
+                Container(
+                    constraints: const BoxConstraints(minWidth: 30),
+                    padding: EdgeInsets.only(
+                        bottom: msg.messageType != MessageType.DATE ? 20 : 0),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildReplyWidget(
+                              msg, widget.guestName, widget.replyClicked),
+                          _buildMessageWidget(msg),
+                        ])),
+                Positioned(bottom: 0, right: -1, child: _buildDateWidget(msg))
+              ]),
+            ),
+          ])),
     );
   }
 
@@ -79,7 +93,7 @@ class _MyWidgetState extends State<MessageWidget> {
     );
   }
 
-  Color _getTimeColor(MessageV2 msg, MessagePref pref) {
+  _getTimeColor(MessageV2 msg, MessagePref pref) {
     if (msg.messageType == MessageType.DATE) {
       return pref.senderTimeColor;
     } else if (msg.isMe!) {
@@ -99,7 +113,7 @@ class _MyWidgetState extends State<MessageWidget> {
     }
   }
 
-  Widget _buildMessageWidget(MessageV2 msg) {
+  _buildMessageWidget(MessageV2 msg) {
     if (msg.messageType == MessageType.TEXT ||
         msg.messageType == MessageType.LINK_TEXT) {
       return SelectableText.rich(
@@ -178,10 +192,9 @@ class _MyWidgetState extends State<MessageWidget> {
   }
 
   _getBoxMargin(MessageV2 msg) {
-    return (msg.messageType != MessageType.TEXT ||
-            msg.messageType != MessageType.LINK_TEXT)
-        ? const EdgeInsets.all(8.0)
-        : EdgeInsets.fromLTRB(msg.isMe! ? 8 : 8, 4, msg.isMe! ? 8 : 30, 4);
+    return (msg.messageType == MessageType.DATE)
+        ? const EdgeInsets.fromLTRB(8, 4, 8, 4)
+        : EdgeInsets.fromLTRB(msg.isMe! ? 30 : 8, 2, msg.isMe! ? 8 : 30, 2);
   }
 
   _getBoxPadding(MessageV2 msg) {
@@ -206,8 +219,7 @@ class _MyWidgetState extends State<MessageWidget> {
     }
   }
 
-  PopupMenuButton<int> _showMessageOptions(
-      MessageV2 msg, MessagePref pref, showReplyWidget) {
+  _showMessageOptions(MessageV2 msg, MessagePref pref, showReplyWidget) {
     return PopupMenuButton(
       constraints: const BoxConstraints(),
       iconSize: 10,
@@ -261,7 +273,7 @@ class _MyWidgetState extends State<MessageWidget> {
                       style: GoogleFonts.montserrat(
                           fontWeight: FontWeight.w600, fontSize: 12),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     _getReplyWidgetByType(msg.reply!),
                   ])));
     } else {
@@ -297,6 +309,18 @@ class _MyWidgetState extends State<MessageWidget> {
         height: 80,
         width: 120,
       );
+    }
+  }
+
+  _getBoxRadius(MessageV2 msg) {
+    if (msg.messageType == MessageType.DATE) {
+      return const BorderRadius.all(Radius.circular(8));
+    } else {
+      return BorderRadius.only(
+          topLeft: const Radius.circular(15),
+          topRight: const Radius.circular(15),
+          bottomLeft: Radius.circular(!msg.isMe! ? 0 : 15),
+          bottomRight: Radius.circular(!msg.isMe! ? 15 : 0));
     }
   }
 }

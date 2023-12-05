@@ -462,9 +462,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   _getReplyText(String name) {
     if (_replyType != null) {
-      return (_replyType!.messageType != MessageType.TEXT ||
-              _replyType!.messageType != MessageType.LINK_TEXT)
-          ? CachedNetworkImage(
+      return (_replyType!.messageType == MessageType.TEXT ||
+              _replyType!.messageType == MessageType.LINK_TEXT)
+          ? Text(_replyType!.value,
+              softWrap: true,
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.normal,
+              ))
+          : CachedNetworkImage(
               imageUrl: _replyType!.value,
               imageBuilder: (context, imageProvider) => Container(
                 decoration: BoxDecoration(
@@ -483,12 +488,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               errorWidget: (context, url, error) => const Icon(Icons.error),
               height: 50,
               width: 50,
-            )
-          : Text(_replyType!.value,
-              softWrap: true,
-              style: GoogleFonts.montserrat(
-                fontWeight: FontWeight.normal,
-              ));
+            );
     } else {
       return const SizedBox();
     }
