@@ -61,7 +61,7 @@ class _MyWidgetState extends State<MessageWidget> {
                 Container(
                     constraints: const BoxConstraints(minWidth: 30),
                     padding: EdgeInsets.only(
-                        bottom: msg.messageType != MessageType.DATE ? 20 : 0),
+                        bottom: msg.messageType != MessageType.DATE ? 15 : 0),
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -76,7 +76,7 @@ class _MyWidgetState extends State<MessageWidget> {
     );
   }
 
-  Visibility _buildDateWidget(MessageV2 msg) {
+  _buildDateWidget(MessageV2 msg) {
     return Visibility(
       visible: msg.messageType != MessageType.DATE,
       child: Container(
@@ -116,14 +116,22 @@ class _MyWidgetState extends State<MessageWidget> {
   _buildMessageWidget(MessageV2 msg) {
     if (msg.messageType == MessageType.TEXT ||
         msg.messageType == MessageType.LINK_TEXT) {
+      var textColor = msg.isMe!
+          ? widget.messagePref.senderTextColor
+          : widget.messagePref.receiverTextColor;
       return SelectableText.rich(
         TextSpan(
           children: TextUtils.extractLinkText(
               msg.msg ?? '',
-              msg.isMe!
-                  ? widget.messagePref.senderTextColor
-                  : widget.messagePref.receiverTextColor,
-              widget.messagePref.messageTextSize),
+              GoogleFonts.montserrat(
+                  color: textColor,
+                  fontSize: widget.messagePref.messageTextSize.toDouble(),
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline),
+              GoogleFonts.montserrat(
+                  color: textColor,
+                  fontSize: widget.messagePref.messageTextSize.toDouble(),
+                  fontWeight: FontWeight.w400)),
         ),
       );
     } else if (msg.messageType == MessageType.IMAGE) {
@@ -264,7 +272,9 @@ class _MyWidgetState extends State<MessageWidget> {
                   border: Border.all(
                       color: Colors.white, width: 1, style: BorderStyle.solid),
                   color: Colors.white60,
-                  borderRadius: BorderRadius.circular(5)),
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(5),
+                      topRight: Radius.circular(5))),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -292,18 +302,20 @@ class _MyWidgetState extends State<MessageWidget> {
     } else {
       return CachedNetworkImage(
         imageUrl: reply.value,
-        imageBuilder: (context, imageProvider) => Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
-              fit: BoxFit.cover,
-              colorFilter: const ColorFilter.mode(
-                Colors.transparent,
-                BlendMode.colorBurn,
+        imageBuilder: (context, imageProvider) => GestureDetector(
+            onTap: () => ScreenNavigator.openImagePreview(reply.value, context),
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.transparent,
+                    BlendMode.colorBurn,
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
+            )),
         placeholder: (context, url) => const SpinKitCircle(color: Colors.red),
         errorWidget: (context, url, error) => const Icon(Icons.error),
         height: 80,
