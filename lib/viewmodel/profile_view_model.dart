@@ -7,14 +7,12 @@ import 'package:flutter_mac/common/pair.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
 import 'package:flutter_mac/preference/shared_preference.dart';
+import 'package:flutter_mac/repo/repository.dart';
 import 'package:flutter_mac/services/Image_utils.dart';
-import 'package:flutter_mac/services/database.dart';
-import 'package:flutter_mac/services/storage.dart';
 
 class ProfileViewModel {
   final String uid;
-  late final DatabaseService _dbService;
-  late final StorageService _storageService;
+  late final Repository _repo;
   late UserProfile profile;
   late final ImageUtils _imageUtils;
   late final ImagePreference _imagePref;
@@ -22,19 +20,18 @@ class ProfileViewModel {
   final _toastStreamController = StreamController<String>();
 
   ProfileViewModel({required this.uid, required AppPreference pref}) {
-    _dbService = DatabaseService(uid: uid);
-    _storageService = StorageService(uid: uid);
+    _repo = Repository(uid);
     _loadingStreamController.add(false);
-    setImageUtils(pref);
+    _setImageUtils(pref);
   }
 
-  Future<void> setImageUtils(AppPreference pref) async {
+  _setImageUtils(AppPreference pref) async {
     _imagePref = await pref.getImagePref();
     _imageUtils = ImageUtils(pref: await pref.getImagePref());
   }
 
   Future<UserProfile> getProfile() async {
-    profile = await _dbService.getUserprofile(uid);
+    profile = await _repo.getUserprofile(uid);
     return profile;
   }
 
@@ -65,9 +62,9 @@ class ProfileViewModel {
       }
     } else {
       log('image received');
-      String? url = await _storageService.uploadProfileImage(imageFile.first);
+      String? url = await _repo.uploadProfileImage(imageFile.first);
       if (url != null) {
-        await _dbService.updateUserProfilePicture(uid, url);
+        await _repo.updateUserProfilePicture(uid, url);
       }
     }
     _loadingStreamController.add(false);
@@ -77,7 +74,7 @@ class ProfileViewModel {
   get toastStream => _toastStreamController.stream;
 
   updateUserDetails(String name, String quote) async {
-    await _dbService.updateUserDetails(uid, name, quote);
+    await _repo.updateUserDetails(uid, name, quote);
   }
 
   void dispose() {

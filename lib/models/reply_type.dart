@@ -35,7 +35,7 @@ class ReplyType {
             messageType: map[ChatConstants.messageType],
             timestamp: map[ChatConstants.timestamp],
             value: map[ChatConstants.value],
-            isMe: map[ChatConstants.value] == uid,
+            isMe: map[ChatConstants.uid] == uid,
           );
   }
 }

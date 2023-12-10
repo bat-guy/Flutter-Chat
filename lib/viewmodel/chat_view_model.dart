@@ -12,9 +12,8 @@ import 'package:flutter_mac/models/reply_type.dart';
 import 'package:flutter_mac/models/state_enums.dart';
 import 'package:flutter_mac/models/user.dart';
 import 'package:flutter_mac/preference/app_preference.dart';
+import 'package:flutter_mac/repo/repository.dart';
 import 'package:flutter_mac/services/Image_utils.dart';
-import 'package:flutter_mac/services/database.dart';
-import 'package:flutter_mac/services/storage.dart';
 import 'package:flutter_mac/services/utils.dart';
 import 'package:giphy_get/giphy_get.dart';
 
@@ -31,8 +30,7 @@ class ChatViewModel {
   final _onlineProvidor = StreamController<bool>();
   final _replyProvidor = StreamController<ReplyType?>();
   final _messageList = <MessageV2>[];
-  late DatabaseService _dbService;
-  late StorageService _storageService;
+  late Repository _repo;
   late ImageUtils _imageUtils;
   late StreamSubscription<List<MessageV2>> _messageStreamSubscription;
 
@@ -46,9 +44,8 @@ class ChatViewModel {
 
   ChatViewModel(this.userCred, this.userProfile, ImagePreference imagePref,
       this._soundPref) {
-    _dbService = DatabaseService(uid: userCred.uid);
+    _repo = Repository(userCred.uid);
     _imageUtils = ImageUtils(pref: imagePref);
-    _storageService = StorageService(uid: userCred.uid);
 
     _messageStreamProvidor.add(_messageList);
     _viewStateStreamProvidor.add(_viewState);
@@ -78,7 +75,7 @@ class ChatViewModel {
   getMessages() {
     _viewState = ViewState.loading;
     _viewStateStreamProvidor.add(_viewState);
-    _messageStreamSubscription = _dbService.messages.listen((list) async {
+    _messageStreamSubscription = _repo.messages.listen((list) async {
       try {
         var tempList = <MessageV2>[];
         for (var e in list) {
@@ -121,9 +118,9 @@ class ChatViewModel {
   //Null item causes the loadingIndicator to appear in the list.
   //loading var is also added to if condition to stop the listener from calling firebase multiple times.
   getOldMessages(double pixels, double maxScrollExtent) async {
-    if (pixels == maxScrollExtent && !_dbService.loading) {
+    if (pixels == maxScrollExtent && !_repo.loading) {
       _messageLoaderProvidor.add(true);
-      final list = await _dbService.getOldMessageListSnapshot();
+      final list = await _repo.getOldMessageListSnapshot();
       var tempList = <MessageV2>[];
       if (list != null && list.isNotEmpty) {
         for (var i = 0; i <= list.length - 1; i++) {
@@ -149,7 +146,7 @@ class ChatViewModel {
   void sendMessage(String text, ReplyType? reply) async {
     if (text.isNotEmpty) {
       _messageControllerStreamProvidor.add(true);
-      await _dbService.sendMessage(
+      await _repo.sendMessage(
           msg: text.trim(),
           isLinktext: TextUtils.checkLinks(text.trim()),
           reply: reply);
@@ -171,13 +168,13 @@ class ChatViewModel {
             gif.images != null &&
             gif.images!.fixedHeightDownsampled != null) {
           if (gif.type == 'gif') {
-            _dbService.sendMedia(
+            _repo.sendMedia(
                 url: gif.images!.fixedHeightDownsampled!.url,
                 reply: reply,
                 messagType: MessageType.GIF);
             setReplyMessage(null);
           } else if (gif.type == 'sticker') {
-            _dbService.sendMedia(
+            _repo.sendMedia(
                 url: gif.images!.fixedHeightDownsampled!.url,
                 reply: reply,
                 messagType: MessageType.STICKER);
@@ -208,9 +205,8 @@ class ChatViewModel {
               break;
           }
         } else {
-          var downloadUrl = await _storageService
-              .uploadImage(imageFile.first, null)
-              .onError((e, s) {
+          var downloadUrl =
+              await _repo.uploadImage(imageFile.first, null).onError((e, s) {
             Logger.print("File upload error - $e\n$s");
             _messageLoaderProvidor.add(false);
             _toastStreamController
@@ -218,7 +214,7 @@ class ChatViewModel {
             return null;
           });
           if (downloadUrl != null) {
-            _dbService.sendMedia(
+            _repo.sendMedia(
                 url: downloadUrl, reply: reply, messagType: MessageType.IMAGE);
             setReplyMessage(null);
             _messageControllerStreamProvidor.add(true);
